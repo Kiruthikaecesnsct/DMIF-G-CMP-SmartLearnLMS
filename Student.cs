@@ -7,14 +7,72 @@ using System.Threading.Tasks;
 namespace Week_1
 {
 
-    //public class Student : User
-    //{
-    //    public Student(string username, string password, string email)
-    //: base(username, password, email)
+    //    //public class Student : User
+    //    //{
+    //    //    public Student(string username, string password, string email)
+    //    //: base(username, password, email)
+    //    //    {
+    //    //    }
+
+    //    //}
+
+    //    public class Student : User
     //    {
+    //        public List<int> EnrolledCourseIds { get; set; }
+    //        public Dictionary<int, int> CourseProgress { get; set; }
+
+    //        public Student(string username, string password, string email) : base(username, password, email)
+    //        {
+    //            EnrolledCourseIds = new List<int>();
+    //            CourseProgress = new Dictionary<int, int>();
+    //        }
+    //        public void EnrollInCourse(int courseId)
+    //        {
+    //            if (!EnrolledCourseIds.Contains(courseId))
+    //            {
+    //                EnrolledCourseIds.Add(courseId);
+    //                CourseProgress[courseId] = 0;
+    //                Console.WriteLine("✓ Successfully enrolled!");
+    //            }
+    //            else
+    //            {
+    //                Console.WriteLine("❌ Already enrolled in this course!");
+    //            }
+    //        }
+    //        public void UpdateProgress(int courseId, int percentage)
+    //        {
+    //            // Check if courseId exists in CourseProgress 
+    //            // If yes, update it 
+    //            // If no, show error 
+    //        }
+
+    //        public void ShowEnrolledCourses()
+    //        {
+    //            // Loop through EnrolledCourseIds 
+    //            // Display each with its progress 
+    //        }
+    //        public override void DisplayDashboard()
+    //        {
+    //            Console.WriteLine("\n╔═══════════════════════════════╗");
+    //            Console.WriteLine("║    STUDENT DASHBOARD          ║");
+    //            Console.WriteLine("╔═══════════════════════════════╗");
+    //            Console.WriteLine($"║ Welcome, {Username}!");
+    //            Console.WriteLine("║");
+    //            Console.WriteLine("║ 1. Browse Available Courses");
+    //            Console.WriteLine("║ 2. My Enrolled Courses");
+    //            Console.WriteLine("║ 3. Update Progress");
+    //            Console.WriteLine("║ 4. View My Statistics");
+    //            Console.WriteLine("║ 5. Logout");
+    //            Console.WriteLine("╚═══════════════════════════════╝");
+    //        }
+
+    //        public override string GetUserType()
+    //        {
+    //            return "Student";
+    //        }
+
     //    }
 
-    //}
 
     public class Student : User
     {
@@ -22,11 +80,12 @@ namespace Week_1
         public Dictionary<int, int> CourseProgress { get; set; }
 
         public Student(string username, string password, string email)
-            : base(username, password, email)
+            : base(username, password, email, "Student")
         {
             EnrolledCourseIds = new List<int>();
             CourseProgress = new Dictionary<int, int>();
         }
+
         public void EnrollInCourse(int courseId)
         {
             if (!EnrolledCourseIds.Contains(courseId))
@@ -40,74 +99,34 @@ namespace Week_1
                 Console.WriteLine("❌ Already enrolled in this course!");
             }
         }
+
         public void UpdateProgress(int courseId, int percentage)
         {
-            // Check if courseId exists in CourseProgress 
-            // If yes, update it 
-            // If no, show error 
+            if (CourseProgress.ContainsKey(courseId))
+            {
+                CourseProgress[courseId] = percentage;
+                Console.WriteLine($"✓ Progress updated to {percentage}%");
+            }
+            else
+            {
+                Console.WriteLine("❌ Not enrolled in this course!");
+            }
         }
 
         public void ShowEnrolledCourses()
         {
-            // Loop through EnrolledCourseIds 
-            // Display each with its progress 
+            Console.WriteLine("Enrolled Courses:");
+            foreach (int courseId in EnrolledCourseIds)
+            {
+                Console.WriteLine($"Course {courseId} - Progress: {CourseProgress[courseId]}%");
+            }
         }
-
     }
-
-    //AASSIGNMENT IN SESSION
-    //public class Student : User
-    //{
-    //    public List<int> EnrolledCourseIds { get; set; }
-    //    public Dictionary<int, int> CourseProgress { get; set; }
-
-    //    public Student(string username, string password, string email)
-    //        : base(username, password, email)
-    //    {
-    //        EnrolledCourseIds = new List<int>();
-    //        CourseProgress = new Dictionary<int, int>();
-    //    }
-
-    //    public void EnrollInCourse(int courseId)
-    //    {
-    //        if (!EnrolledCourseIds.Contains(courseId))
-    //        {
-    //            EnrolledCourseIds.Add(courseId);
-    //            CourseProgress[courseId] = 0;
-    //            Console.WriteLine("✓ Successfully enrolled!");
-    //        }
-    //        else
-    //        {
-    //            Console.WriteLine("❌ Already enrolled in this course!");
-    //        }
-    //    }
-
-    //    public void UpdateProgress(int courseId, int percentage)
-    //    {
-    //        if (CourseProgress.ContainsKey(courseId))
-    //        {
-    //            CourseProgress[courseId] = percentage;
-    //            Console.WriteLine($"✓ Progress updated to {percentage}%");
-    //        }
-    //        else
-    //        {
-    //            Console.WriteLine("❌ Not enrolled in this course!");
-    //        }
-    //    }
-
-    //    public void ShowEnrolledCourses()
-    //    {
-    //        Console.WriteLine("Enrolled Courses:");
-    //        foreach (int courseId in EnrolledCourseIds)
-    //        {
-    //            Console.WriteLine($"Course {courseId} - Progress: {CourseProgress[courseId]}%");
-    //        }
-    //    }
-    //}
-
-
 
 
 
 
 }
+
+
+

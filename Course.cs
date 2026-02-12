@@ -1,49 +1,45 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-
 
 namespace Week_1
 {
     public class Course
     {
-        // Properties
         public int CourseId { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public string InstructorName { get; set; }
         public int MaxStudents { get; set; }
         public int CurrentEnrollments { get; set; }
+        public string Category { get; set; }
 
-        // Constructor
-        public Course(int courseId, string title, string description, string instructorName, int maxStudents, int currentEnrollments)
+        public Course(int id, string title, string desc, string instructor, int max, int current, string category)
         {
-            CourseId = courseId;
+            CourseId = id;
             Title = title;
-            Description = description;
-            InstructorName = instructorName;
-            MaxStudents = maxStudents;
-            CurrentEnrollments = currentEnrollments;
+            Description = desc;
+            InstructorName = instructor;
+            MaxStudents = max;
+            CurrentEnrollments = current;
+            Category = category;
         }
 
-        // Method to check if course can accept enrollments
-        public bool CanEnroll()
+        public bool CanEnroll() => CurrentEnrollments < MaxStudents;
+
+        public void IncrementEnrollment()
         {
-            return CurrentEnrollments < MaxStudents;
+            if (CanEnroll()) CurrentEnrollments++;
         }
 
-        // Method to display course information
+        public void DecrementEnrollment()
+        {
+            if (CurrentEnrollments > 0) CurrentEnrollments--;
+        }
+
         public void DisplayInfo()
         {
-            Console.WriteLine($"Course ID: {CourseId}");
-            Console.WriteLine($"Title: {Title}");
-            Console.WriteLine($"Description: {Description}");
-            Console.WriteLine($"Instructor: {InstructorName}");
-            Console.WriteLine($"Enrollment: {CurrentEnrollments}/{MaxStudents}");
-            Console.WriteLine($"Available: {(CanEnroll() ? "Yes" : "No")}");
+            Console.WriteLine($"[{CourseId}] {Title} ({Category})");
+            Console.WriteLine($"   Instructor: {InstructorName}");
+            Console.WriteLine($"   Slots: {CurrentEnrollments}/{MaxStudents}");
         }
     }
 }

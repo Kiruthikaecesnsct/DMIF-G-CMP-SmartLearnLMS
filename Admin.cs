@@ -12,7 +12,7 @@ namespace Week_1
         public bool CanManageCourses { get; set; }
 
         public Admin(string username, string password, string email)
-            : base(username, password, email)
+            : base(username, password, email,"Admin")
         {
             CanManageUsers = true;
             CanManageCourses = true;

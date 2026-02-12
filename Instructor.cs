@@ -11,7 +11,7 @@ namespace Week_1
         public List<int> CourseIds { get; set; }
 
         public Instructor(string username, string password, string email)
-            : base(username, password, email)
+            : base(username, password, email,"Instructor")
         {
             CourseIds = new List<int>();
         }

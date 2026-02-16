@@ -16,7 +16,7 @@ namespace Week_1
 
     //}
 
-    public class Student : User
+    public class Student : User/*, ISearchable*/
     {
         public List<int> EnrolledCourseIds { get; set; }
         public Dictionary<int, int> CourseProgress { get; set; }
@@ -27,6 +27,21 @@ namespace Week_1
             EnrolledCourseIds = new List<int>();
             CourseProgress = new Dictionary<int, int>();
         }
+        public override void DisplayDashboard()
+        {
+            Console.WriteLine("\n=== STUDENT DASHBOARD ===");
+            Console.WriteLine($"Welcome, {Username}!");
+            Console.WriteLine("\n1. Browse Courses");
+            Console.WriteLine("2. My Enrolled Courses");
+            Console.WriteLine("3. Update Progress");
+            Console.WriteLine("4. Logout");
+        }
+
+        public override string GetUserType()
+        {
+            return "Student";
+        }
+
         public void EnrollInCourse(int courseId)
         {
             if (!EnrolledCourseIds.Contains(courseId))
@@ -52,6 +67,17 @@ namespace Week_1
             // Loop through EnrolledCourseIds 
             // Display each with its progress 
         }
+        //public bool MatchesSearch(string keyword)
+        //{
+        //    return Username.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
+        //           Email.Contains(keyword, StringComparison.OrdinalIgnoreCase);
+        //}
+
+        //public string GetSearchSummary()
+        //{
+        //    return $"{Username} ({Email})";
+        //}
+
 
     }
 

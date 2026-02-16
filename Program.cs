@@ -158,11 +158,11 @@
 //        Console.ReadKey();
 //    }
 //}
-using Week_1;
-// Test inheritance
-Student student = new Student("alice", "pass123", "alice@email.com");
-Console.WriteLine(student.Username);
-student.DisplayInfo();
+//using Week_1;
+//// Test inheritance
+//Student student = new Student("alice", "pass123", "alice@email.com");
+//Console.WriteLine(student.Username);
+//student.DisplayInfo();
 
 
 //// Test enrollment
@@ -181,3 +181,7 @@ student.DisplayInfo();
 //    user.DisplayInfo();
 //    Console.WriteLine("---");
 //}
+
+//ABSTRACT EXAMPLE
+//using Week_1;
+//User user = new User("test", "pass", "test@email.com");

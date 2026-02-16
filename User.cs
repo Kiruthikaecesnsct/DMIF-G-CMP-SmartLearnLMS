@@ -22,7 +22,7 @@ using System.Threading.Tasks;
 
 
 
-public class User
+public abstract class User
 {
     public string Username { get; set; }
     public string Password { get; set; }
@@ -40,6 +40,8 @@ public class User
         DateRegistered = DateTime.Now;
         IsActive = true;
     }
+    public abstract void DisplayDashboard();
+    public abstract string GetUserType();
 
     public void DisplayInfo()
     {

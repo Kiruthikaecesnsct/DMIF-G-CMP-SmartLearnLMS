@@ -17,7 +17,20 @@ namespace Week_1
             CanManageUsers = true;
             CanManageCourses = true;
         }
+        public override void DisplayDashboard()
+        {
+            Console.WriteLine("\n=== STUDENT DASHBOARD ===");
+            Console.WriteLine($"Welcome, {Username}!");
+            Console.WriteLine("\n1. Manage Users");
+            Console.WriteLine("2. Manage Courses");
+            Console.WriteLine("3. System Stats");
+            Console.WriteLine("4. Logout");
+        }
 
+        public override string GetUserType()
+        {
+            return "Admin";
+        }
         public void DisplayPermissions()
         {
             Console.WriteLine("Admin Permissions:");

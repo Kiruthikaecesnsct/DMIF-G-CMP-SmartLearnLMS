@@ -8,42 +8,57 @@ using System.Threading.Tasks;
 
 namespace Week_1
 {
-    public class Course
+    public class Course : IEnrollable/*, ISearchable*/
+
     {
-        // Properties
-        public int CourseId { get; set; }
-        public string Title { get; set; }
-        public string Description { get; set; }
-        public string InstructorName { get; set; }
         public int MaxStudents { get; set; }
-        public int CurrentEnrollments { get; set; }
+        public List<string> EnrolledStudentUsernames { get; set; }
+        //public string Title { get; set; }
+        //public string Description { get; set; }
 
-        // Constructor
-        public Course(int courseId, string title, string description, string instructorName, int maxStudents, int currentEnrollments)
+        public Course()
         {
-            CourseId = courseId;
-            Title = title;
-            Description = description;
-            InstructorName = instructorName;
-            MaxStudents = maxStudents;
-            CurrentEnrollments = currentEnrollments;
+            EnrolledStudentUsernames = new List<string>();
         }
 
-        // Method to check if course can accept enrollments
-        public bool CanEnroll()
+        public void Enroll(Student student)
         {
-            return CurrentEnrollments < MaxStudents;
+            if (!CanEnroll(student))
+            {
+                Console.WriteLine("✗ Cannot enroll - course full!");
+                return;
+            }
+
+            EnrolledStudentUsernames.Add(student.Username);
+            Console.WriteLine($"✓ {student.Username} enrolled!");
         }
 
-        // Method to display course information
-        public void DisplayInfo()
+        public void Drop(Student student)
         {
-            Console.WriteLine($"Course ID: {CourseId}");
-            Console.WriteLine($"Title: {Title}");
-            Console.WriteLine($"Description: {Description}");
-            Console.WriteLine($"Instructor: {InstructorName}");
-            Console.WriteLine($"Enrollment: {CurrentEnrollments}/{MaxStudents}");
-            Console.WriteLine($"Available: {(CanEnroll() ? "Yes" : "No")}");
+            EnrolledStudentUsernames.Remove(student.Username);
+            Console.WriteLine($"✓ {student.Username} dropped!");
         }
+
+        public bool CanEnroll(Student student)
+        {
+            return EnrolledStudentUsernames.Count < MaxStudents;
+        }
+
+        public int GetAvailableSeats()
+        {
+            return MaxStudents - EnrolledStudentUsernames.Count;
+        }
+        //public bool MatchesSearch(string keyword)
+        //{
+        //    return Title.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
+        //           Description.Contains(keyword, StringComparison.OrdinalIgnoreCase);
+        //}
+
+        //public string GetSearchSummary()
+        //{
+        //    return $"{Title} - {Description}";
+        //}
+
     }
+
 }

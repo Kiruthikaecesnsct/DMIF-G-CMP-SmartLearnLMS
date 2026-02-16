@@ -15,7 +15,20 @@ namespace Week_1
         {
             CourseIds = new List<int>();
         }
+        public override void DisplayDashboard()
+        {
+            Console.WriteLine("\n=== STUDENT DASHBOARD ===");
+            Console.WriteLine($"Welcome, {Username}!");
+            Console.WriteLine("\n1. My Courses");
+            Console.WriteLine("2. View Students");
+            Console.WriteLine("3. Create Course");
+            Console.WriteLine("4. Logout");
+        }
 
+        public override string GetUserType()
+        {
+            return "Admin";
+        }
         public void AddCourse(int courseId)
         {
             if (!CourseIds.Contains(courseId))

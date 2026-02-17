@@ -17,7 +17,7 @@ namespace Week_1
         }
         public override void DisplayDashboard()
         {
-            Console.WriteLine("\n=== STUDENT DASHBOARD ===");
+            Console.WriteLine("\n=== INSTRUCTOR DASHBOARD ===");
             Console.WriteLine($"Welcome, {Username}!");
             Console.WriteLine("\n1. My Courses");
             Console.WriteLine("2. View Students");

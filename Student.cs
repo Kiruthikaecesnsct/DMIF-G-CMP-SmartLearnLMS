@@ -16,7 +16,7 @@ namespace Week_1
 
     //}
 
-    public class Student : User/*, ISearchable*/
+    public class Student : User, ISearchable
     {
         public List<int> EnrolledCourseIds { get; set; }
         public Dictionary<int, int> CourseProgress { get; set; }
@@ -67,16 +67,16 @@ namespace Week_1
             // Loop through EnrolledCourseIds 
             // Display each with its progress 
         }
-        //public bool MatchesSearch(string keyword)
-        //{
-        //    return Username.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
-        //           Email.Contains(keyword, StringComparison.OrdinalIgnoreCase);
-        //}
+        public bool MatchesSearch(string keyword)
+        {
+            return Username.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
+                   Email.Contains(keyword, StringComparison.OrdinalIgnoreCase);
+        }
 
-        //public string GetSearchSummary()
-        //{
-        //    return $"{Username} ({Email})";
-        //}
+        public string GetSearchSummary()
+        {
+            return $"{Username} ({Email})";
+        }
 
 
     }

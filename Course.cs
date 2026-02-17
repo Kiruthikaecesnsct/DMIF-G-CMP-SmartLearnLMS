@@ -8,13 +8,13 @@ using System.Threading.Tasks;
 
 namespace Week_1
 {
-    public class Course : IEnrollable/*, ISearchable*/
+    public class Course : IEnrollable, ISearchable
 
     {
         public int MaxStudents { get; set; }
         public List<string> EnrolledStudentUsernames { get; set; }
-        //public string Title { get; set; }
-        //public string Description { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
 
         public Course()
         {
@@ -48,16 +48,16 @@ namespace Week_1
         {
             return MaxStudents - EnrolledStudentUsernames.Count;
         }
-        //public bool MatchesSearch(string keyword)
-        //{
-        //    return Title.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
-        //           Description.Contains(keyword, StringComparison.OrdinalIgnoreCase);
-        //}
+        public bool MatchesSearch(string keyword)
+        {
+            return Title.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
+                   Description.Contains(keyword, StringComparison.OrdinalIgnoreCase);
+        }
 
-        //public string GetSearchSummary()
-        //{
-        //    return $"{Title} - {Description}";
-        //}
+        public string GetSearchSummary()
+        {
+            return $"{Title} - {Description}";
+        }
 
     }
 

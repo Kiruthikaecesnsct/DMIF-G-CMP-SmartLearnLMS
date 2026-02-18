@@ -185,3 +185,120 @@
 //ABSTRACT EXAMPLE
 //using Week_1;
 //User user = new User("test", "pass", "test@email.com");
+
+
+// THE ARRAY MOVING NIGHTMARE-Code 1 — The Array Problem
+using Week_1;
+
+Course[] courses = new Course[10]; // Only 10 spaces!
+courses[0] = new Course { Title = "C# Basics" };
+courses[1] = new Course { Title = "OOP Magic" };
+
+// Need space for course #11? You have to "move houses"!
+Course[] biggerHouse = new Course[20];          // Get a bigger place
+Array.Copy(courses, biggerHouse, courses.Length); // Pack and move EVERYTHING
+courses = biggerHouse;                            // New address
+
+
+
+//Code 2 — Array vs List Side-by-Side
+//// NEW WAY - List<T> (magical)
+//List<Course> courses = new List<Course>(); // No size needed!
+//courses.Add(new Course { Title = "C# Basics" });
+//courses.Add(new Course { Title = "OOP Mastery" });
+//courses.Add(new Course { Title = "LINQ Wizardry" });
+//courses.Add(new Course { Title = "Keep adding..." });
+//courses.Add(new Course { Title = "...it never gets full!" });
+
+//Console.WriteLine($"We have {courses.Count} courses!"); // IT counts for us!
+
+
+//Code 3 — List<T> Superpowers (All Key Methods)
+//List<Student> students = new List<Student>();
+
+//// SUPERPOWER #1: Add to the end
+//students.Add(new Student("alice", "pass123", "alice@email.com"));
+//students.Add(new Student("bob", "pass123", "bob@email.com"));
+//students.Add(new Student("charlie", "pass123", "charlie@email.com"));
+//Console.WriteLine($"We have {students.Count} students");
+
+//// SUPERPOWER #2: Insert at a specific position
+//students.Insert(0, new Student("zara", "pass123", "zara@email.com"));
+//Console.WriteLine($"First student is now: {students[0].Username}"); // zara!
+
+//// SUPERPOWER #3: Find the FIRST match
+//Student alice = students.Find(s => s.Username == "alice");
+//Console.WriteLine($"Found: {alice?.Username}");
+
+//// SUPERPOWER #4: Find ALL matches
+//List<Student> active = students.FindAll(s => s.EnrolledCourseIds.Count > 0);
+//Console.WriteLine($"Active students: {active.Count}");
+
+//// SUPERPOWER #5: Check if something exists
+//bool hasAlice = students.Contains(alice);
+//Console.WriteLine($"Do we have Alice? {hasAlice}");
+
+//// SUPERPOWER #6: Remove items
+//students.RemoveAt(0); // Remove by index
+//Console.WriteLine($"After removing first: {students.Count} students");
+
+//// SUPERPOWER #7: Sort
+//students.Sort((a, b) => a.Username.CompareTo(b.Username));
+//Console.WriteLine("Sorted alphabetically!");
+//foreach (var s in students)
+//{
+//    Console.WriteLine($"  - {s.Username}");
+//}
+
+
+
+////Code 4 — Dictionary Basics
+//// Create a phonebook: Username (string) → Student object
+//Dictionary<string, Student> studentBook = new Dictionary<string, Student>();
+
+//// Add entries: key = username, value = Student object
+//studentBook.Add("alice123", new Student("alice123", "pass", "alice@email.com"));
+//studentBook.Add("bob456", new Student("bob456", "pass", "bob@email.com"));
+//studentBook.Add("charlie789", new Student("charlie789", "pass", "charlie@email.com"));
+
+//// INSTANT lookup — no looping needed!
+//Student alice = studentBook["alice123"];
+//Console.WriteLine($"Found instantly: {alice.Username}");
+
+//// Check before looking up (avoids errors)
+//if (studentBook.ContainsKey("zara999"))
+//{
+//    Student zara = studentBook["zara999"];
+//}
+//else
+//{
+//    Console.WriteLine("Zara not found");
+//}
+
+//// BEST PRACTICE: TryGetValue (safe lookup)
+//if (studentBook.TryGetValue("bob456", out Student bob))
+//{
+//    Console.WriteLine($"Found Bob: {bob.Email}");
+//}
+
+//// Loop through all KEYS (usernames)
+//foreach (string username in studentBook.Keys)
+//{
+//    Console.WriteLine($"Username: {username}");
+//}
+
+//// Loop through all VALUES (student objects)
+//foreach (Student student in studentBook.Values)
+//{
+//    Console.WriteLine($"Student: {student.Username}");
+//}
+
+//// Loop through BOTH key and value
+//foreach (KeyValuePair<string, Student> pair in studentBook)
+//{
+//    Console.WriteLine($"Key: {pair.Key} → Value: {pair.Value.Username}");
+//}
+
+
+
+

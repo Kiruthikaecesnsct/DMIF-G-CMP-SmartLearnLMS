@@ -1,0 +1,62 @@
+[
+  {
+    "MaxStudents": 0,
+    "Id": 1,
+    "EnrolledStudentUsernames": [],
+    "Title": "C# Basics",
+    "Description": null,
+    "Category": "Programming",
+    "Difficulty": "Beginner",
+    "CurrentEnrollments": 120
+  },
+  {
+    "MaxStudents": 0,
+    "Id": 2,
+    "EnrolledStudentUsernames": [],
+    "Title": "Advanced LINQ",
+    "Description": null,
+    "Category": "Programming",
+    "Difficulty": "Advanced",
+    "CurrentEnrollments": 45
+  },
+  {
+    "MaxStudents": 0,
+    "Id": 3,
+    "EnrolledStudentUsernames": [],
+    "Title": "Web Design 101",
+    "Description": null,
+    "Category": "Design",
+    "Difficulty": "Beginner",
+    "CurrentEnrollments": 98
+  },
+  {
+    "MaxStudents": 0,
+    "Id": 4,
+    "EnrolledStudentUsernames": [],
+    "Title": "UI/UX Principles",
+    "Description": null,
+    "Category": "Design",
+    "Difficulty": "Intermediate",
+    "CurrentEnrollments": 60
+  },
+  {
+    "MaxStudents": 0,
+    "Id": 5,
+    "EnrolledStudentUsernames": [],
+    "Title": "Data Science Intro",
+    "Description": null,
+    "Category": "Data",
+    "Difficulty": "Intermediate",
+    "CurrentEnrollments": 75
+  },
+  {
+    "MaxStudents": 0,
+    "Id": 6,
+    "EnrolledStudentUsernames": [],
+    "Title": "Machine Learning",
+    "Description": null,
+    "Category": "Data",
+    "Difficulty": "Advanced",
+    "CurrentEnrollments": 30
+  }
+]

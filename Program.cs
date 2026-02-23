@@ -1,304 +1,257 @@
-﻿//string userName;
-//int age;
-//Console.WriteLine("Enter your name:");
-//userName = Console.ReadLine();
-//Console.WriteLine("Hello, " + userName);
-
-
-//Arithmetic Operators
-//int a ;
-//int b;
-
-//Console.WriteLine("Enter the value of first number");
-//a=int.Parse(Console.ReadLine());
-
-//Console.WriteLine("Enter the value of Second number");
-//b = int.Parse(Console.ReadLine());
-//Console.WriteLine($"{a} + {b} = {a + b}");    // 22
-//Console.WriteLine($"{a} - {b} = {a - b}");    // 12
-//Console.WriteLine($"{a} * {b} = {a * b}");    // 85
-//Console.WriteLine($"{a} / {b} = {a / b}");    // 3   (integer division)
-//Console.WriteLine($"{a} % {b} = {a % b}");    // 2   (remainder)
-
-
-////Comparison Operators & Logical operators
-//int age = 17;
-//bool hasId = true;
-
-//Console.WriteLine(age >= 18);                // false
-//Console.WriteLine(age == 18);                // false
-//Console.WriteLine(age != 20);                // true
-
-//// Logical operators
-//Console.WriteLine(age >= 13 && age <= 19);   // true  (teenager)
-//Console.WriteLine(age < 13 || hasId);        // true
-//Console.WriteLine(!hasId);                   // false
-
-////Even & Odd check
-
-//int number = 42;
-
-//if (number % 2 == 0)
-//{
-//    Console.WriteLine($"{number} is EVEN");
-//}
-//else
-//{
-//    Console.WriteLine($"{number} is ODD");
-//}
-//string type = (number % 2 == 0) ? "even" : "odd";
-//Console.WriteLine(type);
-
-
-////Grade evaluation with switchcase
-//Console.Write("Enter grade letter (A/B/C/D/F): ");
-//string grade = Console.ReadLine().ToUpper();
-
-//switch (grade)
-//{
-//    case "A":
-//        Console.WriteLine("Excellent! Keep it up.");
-//        break;
-//    case "B":
-//        Console.WriteLine("Good work.");
-//        break;
-//    case "C":
-//        Console.WriteLine("Satisfactory.");
-//        break;
-//    case "D":
-//        Console.WriteLine("Pass – needs improvement.");
-//        break;
-//    case "F":
-//        Console.WriteLine("Failed. Try harder next time.");
-//        break;
-//    default:
-//        Console.WriteLine("Invalid grade entered.");
-//        break;
-//}
-
-
-//User student1 = new User();
-//student1.Username = "alice123";
-//student1.Password = "pass123";
-//student1.Email = "alice@email.com";
-//student1.Role = "Student";
-
-//User student1 = new User("alice123", "pass123", "alice@email.com", "Student");
-//student1.DisplayInfo();
-//using Week_1;
-
-//class Program
-//{
-//    static void Main(string[] args)
-//    {
-//        // Example 1: Creating a single user
-//        Console.WriteLine("=== Example 1: Creating a User ===");
-//        User student1 = new User("alice123", "pass123", "alice@email.com", "Student");
-//        student1.DisplayInfo();
-//        Console.WriteLine();
-
-//        // Example 2: Testing password validation
-//        Console.WriteLine("=== Example 2: Password Validation ===");
-//        Console.WriteLine("Enter password:");
-//        string input = Console.ReadLine();
-
-//        if (student1.ValidatePassword(input))
-//        {
-//            Console.WriteLine("Correct!");
-//        }
-//        else
-//        {
-//            Console.WriteLine("Wrong password!");
-//        }
-//        Console.WriteLine();
-
-//        // Example 3: Creating multiple users in a list
-//        Console.WriteLine("=== Example 3: Multiple Users ===");
-//        List<User> users = new List<User>();
-
-//        users.Add(new User("alice123", "pass123", "alice@email.com", "Student"));
-//        users.Add(new User("bob456", "teach123", "bob@email.com", "Instructor"));
-//        users.Add(new User("admin", "admin123", "admin@email.com", "Admin"));
-
-//        foreach (User user in users)
-//        {
-//            user.DisplayInfo();
-//            Console.WriteLine("---");
-//        }
-//        Console.WriteLine();
-
-//        // Example 4: Finding a user by username
-//        Console.WriteLine("=== Example 4: Finding User ===");
-//        User found = users.Find(u => u.Username == "alice123");
-
-//        if (found != null)
-//        {
-//            found.DisplayInfo();
-//        }
-//        Console.WriteLine();
-
-//        // Example 5: Creating and testing a Course
-//        Console.WriteLine("=== Example 5: Creating Course ===");
-//        Course course = new Course(1, "C# Basics", "Learn C#", "Prof Bob", 30, 0);
-//        course.DisplayInfo();
-//        Console.WriteLine();
-
-//        // Example 6: Creating and testing an Enrollment
-//        Console.WriteLine("=== Example 6: Creating Enrollment ===");
-//        User student = new User("alice123", "pass123", "alice@email.com", "Student");
-//        Course csBasics = new Course(1, "C# Basics", "Learn C#", "Prof Bob", 30, 0);
-//        Enrollment enrollment = new Enrollment(1, student.Username, csBasics.CourseId, DateTime.Now, 0, false);
-
-//        enrollment.DisplayInfo();
-//        Console.WriteLine("\n--- Updating Progress ---");
-//        enrollment.UpdateProgress(50);
-//        enrollment.DisplayInfo();
-
-//        Console.WriteLine("\nPress any key to exit...");
-//        Console.ReadKey();
-//    }
-//}
-//using Week_1;
-//// Test inheritance
-//Student student = new Student("alice", "pass123", "alice@email.com");
-//Console.WriteLine(student.Username);
-//student.DisplayInfo();
-
-
-//// Test enrollment
-//student.EnrollInCourse(101);
-//student.EnrollInCourse(102);
-//student.EnrollInCourse(101);
-
-//// Test polymorphism
-//List<User> allUsers = new List<User>();
-//allUsers.Add(new Student("alice", "pass1", "alice@email.com"));
-//allUsers.Add(new Instructor("bob", "pass2", "bob@email.com"));
-//allUsers.Add(new Admin("admin", "pass3", "admin@email.com"));
-
-//foreach (User user in allUsers)
-//{
-//    user.DisplayInfo();
-//    Console.WriteLine("---");
-//}
-
-//ABSTRACT EXAMPLE
-//using Week_1;
-//User user = new User("test", "pass", "test@email.com");
-
-
-// THE ARRAY MOVING NIGHTMARE-Code 1 — The Array Problem
+﻿
+using System.Text.Json;
 using Week_1;
+using static System.Net.WebRequestMethods;
 
-Course[] courses = new Course[10]; // Only 10 spaces!
-courses[0] = new Course { Title = "C# Basics" };
-courses[1] = new Course { Title = "OOP Magic" };
+// ─── Shared Data (ONE place, used everywhere) ─────────────────────────────────
+List<Student> students = Student.GetAllStudents();
+List<Course> courses = Course.GetAllCourses();
 
-// Need space for course #11? You have to "move houses"!
-Course[] biggerHouse = new Course[20];          // Get a bigger place
-Array.Copy(courses, biggerHouse, courses.Length); // Pack and move EVERYTHING
-courses = biggerHouse;                            // New address
+// ─── LINQ Demo Functions ──────────────────────────────────────────────────────
 
+void Demo_GroupBy()
+{
+    Console.WriteLine("========== GROUP BY DEMO ==========\n");
 
+    var studentsByPerformance = students
+        .GroupBy(s =>
+        {
+            if (s.ProgressPercentage >= 80) return "High Performer";
+            if (s.ProgressPercentage >= 50) return "Medium Performer";
+            return "Needs Support";
+        })
+        .ToList();
 
-//Code 2 — Array vs List Side-by-Side
-//// NEW WAY - List<T> (magical)
-//List<Course> courses = new List<Course>(); // No size needed!
-//courses.Add(new Course { Title = "C# Basics" });
-//courses.Add(new Course { Title = "OOP Mastery" });
-//courses.Add(new Course { Title = "LINQ Wizardry" });
-//courses.Add(new Course { Title = "Keep adding..." });
-//courses.Add(new Course { Title = "...it never gets full!" });
+    Console.WriteLine("📊 STUDENT PERFORMANCE REPORT\n");
+    foreach (var group in studentsByPerformance)
+    {
+        Console.WriteLine($"{group.Key}: {group.Count()} students");
+        foreach (var student in group)
+            Console.WriteLine($"  - {student.Username}: {student.ProgressPercentage}%");
+        Console.WriteLine();
+    }
 
-//Console.WriteLine($"We have {courses.Count} courses!"); // IT counts for us!
+    var coursesByCategory = courses.GroupBy(c => c.Category).ToList();
 
+    Console.WriteLine("📚 COURSES BY CATEGORY\n");
+    foreach (var categoryGroup in coursesByCategory)
+    {
+        Console.WriteLine($"{categoryGroup.Key} ({categoryGroup.Count()} courses):");
+        foreach (var course in categoryGroup)
+            Console.WriteLine($"  - {course.Title}");
+        Console.WriteLine();
+    }
+}
 
-//Code 3 — List<T> Superpowers (All Key Methods)
-//List<Student> students = new List<Student>();
+void Demo_Aggregates()
+{
+    Console.WriteLine("========== AGGREGATES DEMO ==========\n");
 
-//// SUPERPOWER #1: Add to the end
-//students.Add(new Student("alice", "pass123", "alice@email.com"));
-//students.Add(new Student("bob", "pass123", "bob@email.com"));
-//students.Add(new Student("charlie", "pass123", "charlie@email.com"));
-//Console.WriteLine($"We have {students.Count} students");
+    if (students.Count == 0 || courses.Count == 0)
+    {
+        Console.WriteLine("⚠️  No data available for analytics.\n");
+        return;
+    }
 
-//// SUPERPOWER #2: Insert at a specific position
-//students.Insert(0, new Student("zara", "pass123", "zara@email.com"));
-//Console.WriteLine($"First student is now: {students[0].Username}"); // zara!
+    int totalStudents = students.Count;
+    int totalCourses = courses.Count;
+    double averageProgress = students.Average(s => s.ProgressPercentage);
+    int totalEnrollments = courses.Sum(c => c.CurrentEnrollments);
+    double highestProgress = students.Max(s => s.ProgressPercentage);
+    double lowestProgress = students.Min(s => s.ProgressPercentage);
 
-//// SUPERPOWER #3: Find the FIRST match
-//Student alice = students.Find(s => s.Username == "alice");
-//Console.WriteLine($"Found: {alice?.Username}");
+    Course mostPopular = courses
+        .OrderByDescending(c => c.CurrentEnrollments)
+        .First();
 
-//// SUPERPOWER #4: Find ALL matches
-//List<Student> active = students.FindAll(s => s.EnrolledCourseIds.Count > 0);
-//Console.WriteLine($"Active students: {active.Count}");
+    Console.WriteLine("🎛️  SMARTLEARN DASHBOARD");
+    Console.WriteLine($"Total Students:      {totalStudents}");
+    Console.WriteLine($"Total Courses:       {totalCourses}");
+    Console.WriteLine($"Average Progress:    {averageProgress:F1}%");
+    Console.WriteLine($"Total Enrollments:   {totalEnrollments}");
+    Console.WriteLine($"Highest Progress:    {highestProgress}%");
+    Console.WriteLine($"Lowest Progress:     {lowestProgress}%");
+    Console.WriteLine($"Most Popular Course: {mostPopular.Title} ({mostPopular.CurrentEnrollments} students)\n");
+}
 
-//// SUPERPOWER #5: Check if something exists
-//bool hasAlice = students.Contains(alice);
-//Console.WriteLine($"Do we have Alice? {hasAlice}");
+void Demo_Pagination()
+{
+    Console.WriteLine("========== PAGINATION DEMO ==========\n");
 
-//// SUPERPOWER #6: Remove items
-//students.RemoveAt(0); // Remove by index
-//Console.WriteLine($"After removing first: {students.Count} students");
+    if (courses.Count == 0)
+    {
+        Console.WriteLine("⚠️  No courses available.\n");
+        return;
+    }
 
-//// SUPERPOWER #7: Sort
-//students.Sort((a, b) => a.Username.CompareTo(b.Username));
-//Console.WriteLine("Sorted alphabetically!");
-//foreach (var s in students)
-//{
-//    Console.WriteLine($"  - {s.Username}");
-//}
+    int pageSize = 3;
+    int pageNumber = 1;
 
+    var coursesForPage = courses
+        .OrderBy(c => c.Title)
+        .Skip((pageNumber - 1) * pageSize)
+        .Take(pageSize)
+        .ToList();
 
+    int totalPages = (int)Math.Ceiling(courses.Count / (double)pageSize);
 
-////Code 4 — Dictionary Basics
-//// Create a phonebook: Username (string) → Student object
-//Dictionary<string, Student> studentBook = new Dictionary<string, Student>();
+    Console.WriteLine($"📄 Page {pageNumber} of {totalPages}\n");
+    foreach (var course in coursesForPage)
+        Console.WriteLine($"- {course.Title}");
 
-//// Add entries: key = username, value = Student object
-//studentBook.Add("alice123", new Student("alice123", "pass", "alice@email.com"));
-//studentBook.Add("bob456", new Student("bob456", "pass", "bob@email.com"));
-//studentBook.Add("charlie789", new Student("charlie789", "pass", "charlie@email.com"));
+    Console.WriteLine($"\nShowing {coursesForPage.Count} of {courses.Count} courses\n");
+}
 
-//// INSTANT lookup — no looping needed!
-//Student alice = studentBook["alice123"];
-//Console.WriteLine($"Found instantly: {alice.Username}");
+void Demo_DistinctAndSelectMany()
+{
+    Console.WriteLine("========== DISTINCT & SELECTMANY DEMO ==========\n");
 
-//// Check before looking up (avoids errors)
-//if (studentBook.ContainsKey("zara999"))
-//{
-//    Student zara = studentBook["zara999"];
-//}
-//else
-//{
-//    Console.WriteLine("Zara not found");
-//}
+    if (courses.Count == 0 || students.Count == 0)
+    {
+        Console.WriteLine("⚠️  No data available.\n");
+        return;
+    }
 
-//// BEST PRACTICE: TryGetValue (safe lookup)
-//if (studentBook.TryGetValue("bob456", out Student bob))
-//{
-//    Console.WriteLine($"Found Bob: {bob.Email}");
-//}
+    var categories = courses
+        .Select(c => c.Category)
+        .Distinct()
+        .OrderBy(cat => cat)
+        .ToList();
 
-//// Loop through all KEYS (usernames)
-//foreach (string username in studentBook.Keys)
-//{
-//    Console.WriteLine($"Username: {username}");
-//}
+    Console.WriteLine("🏷️  ALL COURSE CATEGORIES:");
+    foreach (var category in categories)
+        Console.WriteLine($"- {category}");
 
-//// Loop through all VALUES (student objects)
-//foreach (Student student in studentBook.Values)
-//{
-//    Console.WriteLine($"Student: {student.Username}");
-//}
+    var allEnrolledCourseIds = students
+        .SelectMany(s => s.EnrolledCourseIds)
+        .Distinct()
+        .ToList();
 
-//// Loop through BOTH key and value
-//foreach (KeyValuePair<string, Student> pair in studentBook)
-//{
-//    Console.WriteLine($"Key: {pair.Key} → Value: {pair.Value.Username}");
-//}
+    Console.WriteLine($"\n✅ Total unique courses with enrollments: {allEnrolledCourseIds.Count}\n");
+}
 
+// ─── File Persistence Functions ───────────────────────────────────────────────
+string projectFolder = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\"));
+string dataFolder = Path.Combine(projectFolder, "Data");
+void SaveStudents()
+{
+    try
+    {
+        string filePath = Path.Combine(dataFolder, "students.json");
+        string json = JsonSerializer.Serialize(students, new JsonSerializerOptions { WriteIndented = true });
+        System.IO.File.WriteAllText(filePath, json);
+        Console.WriteLine($"✅ Saved {students.Count} students to {filePath}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error saving students: {ex.Message}");
+    }
+}
 
+void SaveCourses()
+{
+    try
+    {
+        string filePath = Path.Combine(dataFolder, "courses.json");
+        string json = JsonSerializer.Serialize(courses, new JsonSerializerOptions { WriteIndented = true });
+        System.IO.File.WriteAllText(filePath, json);
+        Console.WriteLine($"✅ Saved {courses.Count} courses to {filePath}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error saving courses: {ex.Message}");
+    }
+}
 
+void SaveAllData()
+{
+    Directory.CreateDirectory("Data");
+    Console.WriteLine("💾 Saving all data...");
+    SaveStudents();
+    SaveCourses();
+    Console.WriteLine("✅ All data saved!\n");
+}
+
+void LoadStudents()
+{
+    try
+    {
+        string filePath = Path.Combine(dataFolder, "students.json");
+
+        if (!System.IO.File.Exists(filePath))
+        {
+            Console.WriteLine("ℹ️  No students file found. Starting with default data.");
+            return;
+        }
+
+        string json = System.IO.File.ReadAllText(filePath);
+        var loaded = JsonSerializer.Deserialize<List<Student>>(json)!;
+
+        if (loaded.Count == 0)
+        {
+            Console.WriteLine("ℹ️  Students file is empty. Starting with default data.");
+            students = Student.GetAllStudents();
+            return;
+        }
+
+        students = loaded;
+        Console.WriteLine($"✅ Loaded {students.Count} students from {filePath}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error loading students: {ex.Message}");
+        students = Student.GetAllStudents();
+    }
+}
+
+void LoadCourses()
+{
+    try
+    {
+        string filePath = Path.Combine(dataFolder, "courses.json");
+
+        if (!System.IO.File.Exists(filePath))
+        {
+            Console.WriteLine("ℹ️  No courses file found. Starting with default data.");
+            return;
+        }
+
+        string json = System.IO.File.ReadAllText(filePath);
+        var loaded = JsonSerializer.Deserialize<List<Course>>(json)!;
+
+        if (loaded.Count == 0)
+        {
+            Console.WriteLine("ℹ️  Courses file is empty. Starting with default data.");
+            courses = Course.GetAllCourses();
+            return;
+        }
+
+        courses = loaded;
+        Console.WriteLine($"✅ Loaded {courses.Count} courses from {filePath}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error loading courses: {ex.Message}");
+        courses = Course.GetAllCourses();
+    }
+}
+
+void LoadAllData()
+{
+    Console.WriteLine("📂 Loading saved data...\n");
+    LoadStudents();
+    LoadCourses();
+    Console.WriteLine("\n✅ All data loaded!\n");
+}
+
+// ─── Main Flow ────────────────────────────────────────────────────────────────
+
+LoadAllData();
+
+Demo_GroupBy();
+Demo_Aggregates();
+Demo_Pagination();
+Demo_DistinctAndSelectMany();
+
+SaveAllData();
 

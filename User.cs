@@ -31,12 +31,19 @@ public abstract class User
     public DateTime DateRegistered { get; set; }
     public bool IsActive { get; set; }
 
-    public User(string username, string password, string email/*, string role*/)
+    public User()
+    {
+        Username = "";
+        Password = "";
+        Email = "";
+        DateRegistered = DateTime.Now;
+        IsActive = true;
+    }
+    public User(string username, string password, string email)
     {
         Username = username;
         Password = password;
         Email = email;
-        //Role = role;
         DateRegistered = DateTime.Now;
         IsActive = true;
     }

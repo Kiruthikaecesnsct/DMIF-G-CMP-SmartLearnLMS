@@ -1,0 +1,79 @@
+[
+  {
+    "EnrolledCourseIds": [
+      1,
+      2
+    ],
+    "CourseProgress": {},
+    "ProgressPercentage": 92,
+    "Username": "alice",
+    "Password": "pass123",
+    "Email": "alice@email.com",
+    "DateRegistered": "2026-02-23T11:57:29.1996098+05:30",
+    "IsActive": true
+  },
+  {
+    "EnrolledCourseIds": [
+      1,
+      3
+    ],
+    "CourseProgress": {},
+    "ProgressPercentage": 65,
+    "Username": "bob",
+    "Password": "pass123",
+    "Email": "bob@email.com",
+    "DateRegistered": "2026-02-23T11:57:29.2094829+05:30",
+    "IsActive": true
+  },
+  {
+    "EnrolledCourseIds": [
+      2
+    ],
+    "CourseProgress": {},
+    "ProgressPercentage": 40,
+    "Username": "carol",
+    "Password": "pass123",
+    "Email": "carol@email.com",
+    "DateRegistered": "2026-02-23T11:57:29.2094919+05:30",
+    "IsActive": true
+  },
+  {
+    "EnrolledCourseIds": [
+      3,
+      4
+    ],
+    "CourseProgress": {},
+    "ProgressPercentage": 78,
+    "Username": "dave",
+    "Password": "pass123",
+    "Email": "dave@email.com",
+    "DateRegistered": "2026-02-23T11:57:29.2094927+05:30",
+    "IsActive": true
+  },
+  {
+    "EnrolledCourseIds": [
+      1,
+      4
+    ],
+    "CourseProgress": {},
+    "ProgressPercentage": 85,
+    "Username": "eve",
+    "Password": "pass123",
+    "Email": "eve@email.com",
+    "DateRegistered": "2026-02-23T11:57:29.2094933+05:30",
+    "IsActive": true
+  },
+  {
+    "EnrolledCourseIds": [
+      2,
+      3
+    ],
+    "CourseProgress": {},
+    "ProgressPercentage": 30,
+    "Username": "frank",
+    "Password": "pass123",
+    "Email": "frank@email.com",
+    "DateRegistered": "2026-02-23T11:57:29.2094962+05:30",
+    "IsActive": true
+  }
+]

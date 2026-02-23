@@ -170,11 +170,12 @@
 //student.EnrollInCourse(102);
 //student.EnrollInCourse(101);
 
-//// Test polymorphism
-//List<User> allUsers = new List<User>();
-//allUsers.Add(new Student("alice", "pass1", "alice@email.com"));
-//allUsers.Add(new Instructor("bob", "pass2", "bob@email.com"));
-//allUsers.Add(new Admin("admin", "pass3", "admin@email.com"));
+// Test polymorphism
+using Week_1;
+List<User> allUsers = new List<User>();
+allUsers.Add(new Student("alice", "pass1", "alice@email.com"));
+allUsers.Add(new Instructor("bob", "pass2", "bob@email.com"));
+allUsers.Add(new Admin("admin", "pass3", "admin@email.com"));
 
 //foreach (User user in allUsers)
 //{
@@ -188,16 +189,16 @@
 
 
 // THE ARRAY MOVING NIGHTMARE-Code 1 — The Array Problem
-using Week_1;
+//using Week_1;
 
-Course[] courses = new Course[10]; // Only 10 spaces!
-courses[0] = new Course { Title = "C# Basics" };
-courses[1] = new Course { Title = "OOP Magic" };
+//Course[] courses = new Course[10]; // Only 10 spaces!
+//courses[0] = new Course { Title = "C# Basics" };
+//courses[1] = new Course { Title = "OOP Magic" };
 
-// Need space for course #11? You have to "move houses"!
-Course[] biggerHouse = new Course[20];          // Get a bigger place
-Array.Copy(courses, biggerHouse, courses.Length); // Pack and move EVERYTHING
-courses = biggerHouse;                            // New address
+//// Need space for course #11? You have to "move houses"!
+//Course[] biggerHouse = new Course[20];          // Get a bigger place
+//Array.Copy(courses, biggerHouse, courses.Length); // Pack and move EVERYTHING
+//courses = biggerHouse;                            // New address
 
 
 

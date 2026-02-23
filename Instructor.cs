@@ -27,7 +27,7 @@ namespace Week_1
 
         public override string GetUserType()
         {
-            return "Admin";
+            return "Instructor";
         }
         public void AddCourse(int courseId)
         {

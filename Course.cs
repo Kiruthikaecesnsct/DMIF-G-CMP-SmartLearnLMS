@@ -1,16 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-
-
-namespace Week_1
+﻿// Course.cs — complete answer (show AFTER students try)
+namespace SmartLearnLMS
 {
     public class Course
     {
-        // Properties
         public int CourseId { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
@@ -18,32 +10,29 @@ namespace Week_1
         public int MaxStudents { get; set; }
         public int CurrentEnrollments { get; set; }
 
-        // Constructor
-        public Course(int courseId, string title, string description, string instructorName, int maxStudents, int currentEnrollments)
+        public Course(int id, string title, string description,
+                      string instructor, int maxStudents, int currentEnrollments)
         {
-            CourseId = courseId;
+            CourseId = id;
             Title = title;
             Description = description;
-            InstructorName = instructorName;
+            InstructorName = instructor;
             MaxStudents = maxStudents;
             CurrentEnrollments = currentEnrollments;
         }
 
-        // Method to check if course can accept enrollments
         public bool CanEnroll()
         {
             return CurrentEnrollments < MaxStudents;
         }
 
-        // Method to display course information
         public void DisplayInfo()
         {
-            Console.WriteLine($"Course ID: {CourseId}");
-            Console.WriteLine($"Title: {Title}");
-            Console.WriteLine($"Description: {Description}");
-            Console.WriteLine($"Instructor: {InstructorName}");
-            Console.WriteLine($"Enrollment: {CurrentEnrollments}/{MaxStudents}");
-            Console.WriteLine($"Available: {(CanEnroll() ? "Yes" : "No")}");
+            Console.WriteLine($"  ID         : {CourseId}");
+            Console.WriteLine($"  Title      : {Title}");
+            Console.WriteLine($"  Instructor : {InstructorName}");
+            Console.WriteLine($"  Enrolled   : {CurrentEnrollments}/{MaxStudents}");
+            Console.WriteLine($"  Available  : {(CanEnroll() ? "Yes" : "Full")}");
         }
     }
 }

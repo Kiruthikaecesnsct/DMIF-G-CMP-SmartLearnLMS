@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Enrollment.cs — complete answer (show AFTER students try)
+using System;
 
-namespace Week_1
+namespace SmartLearnLMS
 {
     public class Enrollment
     {
-        // Properties
         public int EnrollmentId { get; set; }
         public string StudentUsername { get; set; }
         public int CourseId { get; set; }
@@ -16,43 +12,43 @@ namespace Week_1
         public int ProgressPercentage { get; set; }
         public bool IsCompleted { get; set; }
 
-        // Constructor
-        public Enrollment(int enrollmentId, string studentUsername, int courseId, DateTime enrollmentDate, int progressPercentage, bool isCompleted)
+        public Enrollment(int id, string studentUsername, int courseId,
+                          DateTime enrollmentDate, int progress, bool isCompleted)
         {
-            EnrollmentId = enrollmentId;
+            EnrollmentId = id;
             StudentUsername = studentUsername;
             CourseId = courseId;
             EnrollmentDate = enrollmentDate;
-            ProgressPercentage = progressPercentage;
+            ProgressPercentage = progress;
             IsCompleted = isCompleted;
         }
 
-        // Method to update progress
         public void UpdateProgress(int percentage)
         {
             ProgressPercentage = percentage;
             if (percentage >= 100)
             {
-                MarkComplete();
+                IsCompleted = true;
+                Console.WriteLine("  Course completed!");
             }
+            Console.WriteLine($"  Progress updated to {ProgressPercentage}%");
         }
 
-        // Method to mark enrollment as complete
         public void MarkComplete()
         {
             IsCompleted = true;
             ProgressPercentage = 100;
+            Console.WriteLine("  Enrollment marked as complete!");
         }
 
-        // Method to display enrollment information
         public void DisplayInfo()
         {
-            Console.WriteLine($"Enrollment ID: {EnrollmentId}");
-            Console.WriteLine($"Student: {StudentUsername}");
-            Console.WriteLine($"Course ID: {CourseId}");
-            Console.WriteLine($"Enrolled On: {EnrollmentDate.ToShortDateString()}");
-            Console.WriteLine($"Progress: {ProgressPercentage}%");
-            Console.WriteLine($"Status: {(IsCompleted ? "Completed" : "In Progress")}");
+            Console.WriteLine($"  Enrollment ID : {EnrollmentId}");
+            Console.WriteLine($"  Student       : {StudentUsername}");
+            Console.WriteLine($"  Course ID     : {CourseId}");
+            Console.WriteLine($"  Enrolled On   : {EnrollmentDate:dd MMM yyyy}");
+            Console.WriteLine($"  Progress      : {ProgressPercentage}%");
+            Console.WriteLine($"  Completed     : {(IsCompleted ? "Yes" : "No")}");
         }
     }
 }

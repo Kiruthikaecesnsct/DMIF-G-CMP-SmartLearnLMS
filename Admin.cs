@@ -3,63 +3,49 @@ using System.Collections.Generic;
 
 namespace Week_1
 {
-    public class Admin : User, INotifiable, IReportable
+    public class Admin : User
     {
-        private List<string> permissions = new List<string> { "ManageUsers", "ManageCourses", "ViewStats", "SystemConfig" };
-        private List<string> notificationHistory = new List<string>();
+        public bool CanManageUsers { get; set; }
+        public bool CanManageCourses { get; set; }
+        public string AdminLevel { get; set; }
 
         public Admin(string username, string password, string email)
             : base(username, password, email)
         {
+            CanManageUsers = true;
+            CanManageCourses = true;
+            AdminLevel = "Super";
         }
 
         public void DisplayPermissions()
         {
-            Console.WriteLine("  Permissions:");
-            foreach (string p in permissions)
-                Console.WriteLine($"    ✓ {p}");
+            Console.WriteLine($"  Manage Users  : {(CanManageUsers ? "✓" : "✗")}");
+            Console.WriteLine($"  Manage Courses: {(CanManageCourses ? "✓" : "✗")}");
         }
 
-        // --- Abstract overrides ---
-        public override void DisplayInfo()
-        {
-            Console.WriteLine($"  Username : {Username}");
-            Console.WriteLine($"  Email    : {Email}");
-            Console.WriteLine($"  Role     : Admin");
-        }
-
+        // ── Abstract overrides ──
         public override void DisplayDashboard()
         {
-            Console.WriteLine("\n=== ADMIN DASHBOARD ===");
-            Console.WriteLine($"  Welcome, {Username}!");
-            Console.WriteLine("\n  1. Manage Users");
-            Console.WriteLine("  2. Manage Courses");
-            Console.WriteLine("  3. System Stats");
-            Console.WriteLine("  4. Logout");
+            Console.WriteLine("╔════════════════════════════════╗");
+            Console.WriteLine("║        ADMIN DASHBOARD         ║");
+            Console.WriteLine("╚════════════════════════════════╝");
+            Console.WriteLine($"  Welcome, Admin {Username}!");
+            Console.WriteLine($"  Level: {AdminLevel}");
+            Console.WriteLine();
+            Console.WriteLine("  [1] Manage Users");
+            Console.WriteLine("  [2] Manage Courses");
+            Console.WriteLine("  [3] View System Reports");
+            Console.WriteLine("  [4] System Settings");
+            Console.WriteLine("  [5] Logout");
         }
 
         public override string GetUserType() => "Admin";
 
-        // --- INotifiable ---
-        public void SendNotification(string message)
+        public override void DisplayInfo()
         {
-            string entry = $"[{DateTime.Now:g}] {message}";
-            notificationHistory.Add(entry);
-            Console.WriteLine($"  🔔 Notification: {message}");
-        }
-
-        public List<string> GetNotificationHistory() => notificationHistory;
-
-        // --- IReportable ---
-        public string GenerateReport()
-        {
-            return $"Admin Report | User: {Username} | Permissions: {permissions.Count}";
-        }
-
-        public void DisplayReport()
-        {
-            Console.WriteLine($"\n  === Admin Report: {Username} ===");
-            Console.WriteLine($"  Email       : {Email}");
+            base.DisplayInfo();
+            Console.WriteLine($"  Role        : Admin");
+            Console.WriteLine($"  Admin Level : {AdminLevel}");
             DisplayPermissions();
         }
     }

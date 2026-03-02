@@ -3,15 +3,18 @@ using System.Collections.Generic;
 
 namespace Week_1
 {
-    public class Instructor : User, ISearchable, INotifiable, IReportable
+    public class Instructor : User, INotifiable
     {
         public List<int> CourseIds { get; set; }
-        private List<string> notificationHistory = new List<string>();
+        public string Department { get; set; }
+        private List<string> _notifications;
 
         public Instructor(string username, string password, string email)
             : base(username, password, email)
         {
             CourseIds = new List<int>();
+            Department = "Computer Science";
+            _notifications = new List<string>();
         }
 
         public void AddCourse(int courseId)
@@ -38,58 +41,42 @@ namespace Week_1
             Console.WriteLine($"  {Username}'s Course IDs: {string.Join(", ", CourseIds)}");
         }
 
-        // --- Abstract overrides ---
-        public override void DisplayInfo()
-        {
-            Console.WriteLine($"  Username : {Username}");
-            Console.WriteLine($"  Email    : {Email}");
-            Console.WriteLine($"  Role     : Instructor");
-            Console.WriteLine($"  Courses  : {CourseIds.Count}");
-        }
-
+        // ── Abstract overrides ──
         public override void DisplayDashboard()
         {
-            Console.WriteLine("\n=== INSTRUCTOR DASHBOARD ===");
-            Console.WriteLine($"  Welcome, {Username}!");
-            Console.WriteLine("\n  1. My Courses");
-            Console.WriteLine("  2. View Students");
-            Console.WriteLine("  3. Create Course");
-            Console.WriteLine("  4. Logout");
+            Console.WriteLine("╔════════════════════════════════╗");
+            Console.WriteLine("║      INSTRUCTOR DASHBOARD      ║");
+            Console.WriteLine("╚════════════════════════════════╝");
+            Console.WriteLine($"  Welcome, Professor {Username}!");
+            Console.WriteLine($"  Department: {Department}");
+            Console.WriteLine($"  Teaching {CourseIds.Count} course(s)");
+            Console.WriteLine();
+            Console.WriteLine("  [1] My Courses");
+            Console.WriteLine("  [2] Create New Course");
+            Console.WriteLine("  [3] View Student Roster");
+            Console.WriteLine("  [4] Grade Assignments");
+            Console.WriteLine("  [5] My Notifications");
+            Console.WriteLine("  [6] Logout");
         }
 
         public override string GetUserType() => "Instructor";
 
-        // --- ISearchable ---
-        public bool MatchesSearch(string keyword)
+        public override void DisplayInfo()
         {
-            return Username.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
-                   (Email ?? "").Contains(keyword, StringComparison.OrdinalIgnoreCase);
+            base.DisplayInfo();
+            Console.WriteLine($"  Role       : Instructor");
+            Console.WriteLine($"  Department : {Department}");
+            Console.WriteLine($"  Teaching   : {CourseIds.Count} course(s)");
         }
 
-        public string GetSearchSummary() => $"{Username} ({Email}) [Instructor]";
-
-        // --- INotifiable ---
+        // ── INotifiable ──
         public void SendNotification(string message)
         {
             string entry = $"[{DateTime.Now:g}] {message}";
-            notificationHistory.Add(entry);
-            Console.WriteLine($"  🔔 Notification: {message}");
+            _notifications.Add(entry);
+            Console.WriteLine($"  🔔 {message}");
         }
 
-        public List<string> GetNotificationHistory() => notificationHistory;
-
-        // --- IReportable ---
-        public string GenerateReport()
-        {
-            return $"Instructor Report | User: {Username} | Courses Teaching: {CourseIds.Count}";
-        }
-
-        public void DisplayReport()
-        {
-            Console.WriteLine($"\n  === Instructor Report: {Username} ===");
-            Console.WriteLine($"  Email          : {Email}");
-            Console.WriteLine($"  Courses taught : {CourseIds.Count}");
-            Console.WriteLine($"  Course IDs     : {string.Join(", ", CourseIds)}");
-        }
+        public List<string> GetNotificationHistory() => new List<string>(_notifications);
     }
 }

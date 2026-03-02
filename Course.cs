@@ -16,7 +16,7 @@ namespace Week_1
             {
                 if (string.IsNullOrWhiteSpace(value) || value.Length > 100)
                 {
-                    Console.WriteLine("  ✗ Title must be non-empty and max 100 chars.");
+                    Console.WriteLine("  ✗ Title must be 1-100 characters");
                     return;
                 }
                 _title = value;
@@ -24,62 +24,71 @@ namespace Week_1
         }
 
         public string Description { get; set; }
+        public string InstructorName { get; set; }
+        public string Category { get; set; }
+        public int CurrentEnrollments { get; set; }
 
-        // Enrolled student usernames (for IEnrollable)
-        public List<string> EnrolledStudentUsernames { get; set; } = new List<string>();
+        private List<int> _ratings = new List<int>();
+        private List<string> _reviews = new List<string>();
 
-        // Ratings (for IRatable)
-        private List<int> ratings = new List<int>();
-        private List<string> reviews = new List<string>();
-
-        public Course(int id, string title, string description)
+        protected Course(int id, string title, string description, string instructorName, string category)
         {
             CourseId = id;
             _title = title;
             Description = description;
+            InstructorName = instructorName;
+            Category = category;
+            CurrentEnrollments = 0;
         }
 
-        // --- Abstract methods ---
+        // ── Abstract methods ──
+        public abstract bool CanEnroll(Student student);
         public abstract void DisplayCourseInfo();
-        public abstract bool CanEnroll();
-        public abstract int GetEstimatedHours();
+        public abstract string GetCourseType();
+        public abstract int GetAvailableSeats();
 
-        // --- IEnrollable ---
+        // ── IEnrollable ──
         public void Enroll(Student student)
         {
             if (!CanEnroll(student))
             {
-                Console.WriteLine("  ✗ Cannot enroll - course full!");
+                Console.WriteLine("  ✗ Cannot enroll - course is full!");
                 return;
             }
-            if (!EnrolledStudentUsernames.Contains(student.Username))
-            {
-                EnrolledStudentUsernames.Add(student.Username);
-                Console.WriteLine($"  ✓ {student.Username} enrolled in {Title}!");
-            }
-            else
-                Console.WriteLine("  Already enrolled.");
+            CurrentEnrollments++;
+            student.EnrollInCourse(CourseId);
+            if (student is INotifiable notifiable)
+                notifiable.SendNotification($"You have been enrolled in '{Title}'.");
+            Console.WriteLine($"  ✓ {student.Username} enrolled in '{Title}'!");
         }
 
         public void Drop(Student student)
         {
-            EnrolledStudentUsernames.Remove(student.Username);
-            Console.WriteLine($"  ✓ {student.Username} dropped from {Title}.");
+            if (CurrentEnrollments > 0) CurrentEnrollments--;
+            Console.WriteLine($"  ✓ {student.Username} has been dropped from '{Title}'.");
         }
 
-        public bool CanEnroll(Student student)
+        public void Drop(string username)
         {
-            return CanEnroll(); // delegates to abstract method
+            if (CurrentEnrollments > 0) CurrentEnrollments--;
+            Console.WriteLine($"  ✓ Dropped from '{Title}'.");
         }
 
-        public int GetAvailableSeats()
+        // ── ISearchable ──
+        public bool MatchesSearch(string keyword)
         {
-            // Derived live courses override CanEnroll with MaxStudents logic
-            // For base, return a large number if not overridden
-            return 999;
+            return (Title ?? "").Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
+                   (Description ?? "").Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
+                   (Category ?? "").Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
+                   (InstructorName ?? "").Contains(keyword, StringComparison.OrdinalIgnoreCase);
         }
 
-        // --- IRatable ---
+        public string GetSearchSummary()
+        {
+            return $"[{GetCourseType()}] {Title} | {Category} | {InstructorName}";
+        }
+
+        // ── IRatable ──
         public void AddRating(int stars, string review)
         {
             if (stars < 1 || stars > 5)
@@ -87,28 +96,13 @@ namespace Week_1
                 Console.WriteLine("  ✗ Rating must be 1-5 stars.");
                 return;
             }
-            ratings.Add(stars);
-            reviews.Add(review);
-            Console.WriteLine($"  ✓ Rating added: {stars} ⭐");
+            _ratings.Add(stars);
+            _reviews.Add(review);
+            Console.WriteLine($"  ✓ Rating added: {stars}⭐");
         }
 
-        public double GetAverageRating() => ratings.Count > 0 ? ratings.Average() : 0;
+        public double GetAverageRating() => _ratings.Count > 0 ? _ratings.Average() : 0;
 
-        public int GetTotalRatings() => ratings.Count;
-
-        // --- ISearchable ---
-        public bool MatchesSearch(string keyword)
-        {
-            return (Title ?? "").Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
-                   (Description ?? "").Contains(keyword, StringComparison.OrdinalIgnoreCase);
-        }
-
-        public string GetSearchSummary() => $"{Title} - {Description}";
-
-        // Keep a DisplayInfo wrapper so existing Program.cs code doesn't break
-        public void DisplayInfo()
-        {
-            DisplayCourseInfo();
-        }
+        public int GetTotalRatings() => _ratings.Count;
     }
 }

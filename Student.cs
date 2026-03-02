@@ -1,30 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Week_1
 {
-
-    //public class Student : User
-    //{
-    //    public Student(string username, string password, string email)
-    //: base(username, password, email)
-    //    {
-    //    }
-
-    //}
-
-    //ASSIGNMENT IN SESSION
-    public class Student : User, ISearchable
+    public class Student : User, ISearchable, INotifiable, IReportable
     {
         public List<int> EnrolledCourseIds { get; set; }
+        public Dictionary<int, int> CourseProgress { get; set; }
 
-        private Dictionary<int, int> _courseProgress = new Dictionary<int, int>();
-        public Dictionary<int, int> CourseProgress => _courseProgress;
+        // Notification history
+        private List<string> notificationHistory = new List<string>();
 
-        // Validated progress
+        // Email validation backing field
+        private string _email;
+        public new string Email
+        {
+            get => _email;
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value) || !value.Contains("@"))
+                {
+                    Console.WriteLine("  ✗ Invalid email");
+                    return;
+                }
+                _email = value;
+            }
+        }
+
+        // Progress validation backing field
         private int _progressPercentage;
         public int ProgressPercentage
         {
@@ -33,7 +37,7 @@ namespace Week_1
             {
                 if (value < 0 || value > 100)
                 {
-                    Console.WriteLine("✗ Progress must be between 0 and 100");
+                    Console.WriteLine("  ✗ Progress must be 0-100");
                     return;
                 }
                 _progressPercentage = value;
@@ -41,17 +45,42 @@ namespace Week_1
         }
 
         public Student(string username, string password, string email)
-            : base(username, password, email, "Student")
+            : base(username, password, email)
         {
+            _email = email;
             EnrolledCourseIds = new List<int>();
+            CourseProgress = new Dictionary<int, int>();
         }
 
-        // ── Abstract method implementations ───────────────────────────────────
+        public void EnrollInCourse(int courseId)
+        {
+            if (!EnrolledCourseIds.Contains(courseId))
+            {
+                EnrolledCourseIds.Add(courseId);
+                CourseProgress[courseId] = 0;
+                Console.WriteLine($"  ✓ Enrolled in course ID {courseId}");
+                SendNotification($"You have been enrolled in course ID {courseId}.");
+            }
+            else
+            {
+                Console.WriteLine("  Already enrolled in this course.");
+            }
+        }
+
+        // --- Abstract overrides ---
+        public override void DisplayInfo()
+        {
+            Console.WriteLine($"  Username : {Username}");
+            Console.WriteLine($"  Email    : {Email}");
+            Console.WriteLine($"  Role     : Student");
+            Console.WriteLine($"  Courses  : {EnrolledCourseIds.Count}");
+        }
+
         public override void DisplayDashboard()
         {
             Console.WriteLine("\n=== STUDENT DASHBOARD ===");
             Console.WriteLine($"  Welcome, {Username}!");
-            Console.WriteLine("  1. Browse Courses");
+            Console.WriteLine("\n  1. Browse Courses");
             Console.WriteLine("  2. My Enrolled Courses");
             Console.WriteLine("  3. Update Progress");
             Console.WriteLine("  4. Logout");
@@ -59,73 +88,38 @@ namespace Week_1
 
         public override string GetUserType() => "Student";
 
-        // ── Enrolment methods ──────────────────────────────────────────────────
-        public void EnrollInCourse(int courseId)
-        {
-            if (!EnrolledCourseIds.Contains(courseId))
-            {
-                EnrolledCourseIds.Add(courseId);
-                _courseProgress[courseId] = 0;
-                Console.WriteLine("✓ Successfully enrolled!");
-                SendNotification($"You have been enrolled in Course #{courseId}");
-            }
-            else
-            {
-                Console.WriteLine("❌ Already enrolled in this course!");
-            }
-        }
-
-        public void UpdateProgress(int courseId, int percentage)
-        {
-            if (_courseProgress.ContainsKey(courseId))
-            {
-                if (percentage < 0 || percentage > 100)
-                {
-                    Console.WriteLine("✗ Progress must be 0-100");
-                    return;
-                }
-                _courseProgress[courseId] = percentage;
-                Console.WriteLine($"✓ Progress updated to {percentage}%");
-                if (percentage >= 100)
-                    SendNotification($"🎉 You completed Course #{courseId}!");
-            }
-            else
-            {
-                Console.WriteLine("❌ Not enrolled in this course!");
-            }
-        }
-
-        public void ShowEnrolledCourses()
-        {
-            Console.WriteLine($"\n  Enrolled Courses for {Username}:");
-            if (EnrolledCourseIds.Count == 0)
-            {
-                Console.WriteLine("  (No courses enrolled yet)");
-                return;
-            }
-            foreach (int courseId in EnrolledCourseIds)
-                Console.WriteLine($"  Course #{courseId} — Progress: {_courseProgress[courseId]}%");
-        }
-
-        // ── ISearchable ────────────────────────────────────────────────────────
+        // --- ISearchable ---
         public bool MatchesSearch(string keyword)
         {
             return Username.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
-                   Email.Contains(keyword, StringComparison.OrdinalIgnoreCase);
+                   (Email ?? "").Contains(keyword, StringComparison.OrdinalIgnoreCase);
         }
 
-        public string GetSearchSummary() => $"[Student] {Username} ({Email})";
+        public string GetSearchSummary() => $"{Username} ({Email}) [Student]";
 
-        // ── IReportable override ───────────────────────────────────────────────
-        public override string GenerateReport()
+        // --- INotifiable ---
+        public void SendNotification(string message)
         {
-            return $"Student Report | {Username} | Enrolled Courses: {EnrolledCourseIds.Count} | Registered: {DateRegistered:dd MMM yyyy}";
+            string entry = $"[{DateTime.Now:g}] {message}";
+            notificationHistory.Add(entry);
+            Console.WriteLine($"  🔔 Notification: {message}");
+        }
+
+        public List<string> GetNotificationHistory() => notificationHistory;
+
+        // --- IReportable ---
+        public string GenerateReport()
+        {
+            return $"Student Report | User: {Username} | Courses: {EnrolledCourseIds.Count} | Progress entries: {CourseProgress.Count}";
+        }
+
+        public void DisplayReport()
+        {
+            Console.WriteLine($"\n  === Student Report: {Username} ===");
+            Console.WriteLine($"  Email        : {Email}");
+            Console.WriteLine($"  Enrolled in  : {EnrolledCourseIds.Count} course(s)");
+            foreach (var kv in CourseProgress)
+                Console.WriteLine($"    Course ID {kv.Key}: {kv.Value}%");
         }
     }
-
-
-
-
-
-
 }

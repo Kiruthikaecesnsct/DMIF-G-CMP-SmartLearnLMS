@@ -1,28 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Week_1
 {
-    public class Admin : User
+    public class Admin : User, INotifiable, IReportable
     {
-        public bool CanManageUsers { get; set; }
-        public bool CanManageCourses { get; set; }
+        private List<string> permissions = new List<string> { "ManageUsers", "ManageCourses", "ViewStats", "SystemConfig" };
+        private List<string> notificationHistory = new List<string>();
 
         public Admin(string username, string password, string email)
-            : base(username, password, email, "Admin")
+            : base(username, password, email)
         {
-            CanManageUsers = true;
-            CanManageCourses = true;
+        }
+
+        public void DisplayPermissions()
+        {
+            Console.WriteLine("  Permissions:");
+            foreach (string p in permissions)
+                Console.WriteLine($"    ✓ {p}");
+        }
+
+        // --- Abstract overrides ---
+        public override void DisplayInfo()
+        {
+            Console.WriteLine($"  Username : {Username}");
+            Console.WriteLine($"  Email    : {Email}");
+            Console.WriteLine($"  Role     : Admin");
         }
 
         public override void DisplayDashboard()
         {
             Console.WriteLine("\n=== ADMIN DASHBOARD ===");
             Console.WriteLine($"  Welcome, {Username}!");
-            Console.WriteLine("  1. Manage Users");
+            Console.WriteLine("\n  1. Manage Users");
             Console.WriteLine("  2. Manage Courses");
             Console.WriteLine("  3. System Stats");
             Console.WriteLine("  4. Logout");
@@ -30,16 +40,27 @@ namespace Week_1
 
         public override string GetUserType() => "Admin";
 
-        public void DisplayPermissions()
+        // --- INotifiable ---
+        public void SendNotification(string message)
         {
-            Console.WriteLine("\n  Admin Permissions:");
-            Console.WriteLine($"  Manage Users   : {CanManageUsers}");
-            Console.WriteLine($"  Manage Courses : {CanManageCourses}");
+            string entry = $"[{DateTime.Now:g}] {message}";
+            notificationHistory.Add(entry);
+            Console.WriteLine($"  🔔 Notification: {message}");
         }
 
-        public override string GenerateReport()
+        public List<string> GetNotificationHistory() => notificationHistory;
+
+        // --- IReportable ---
+        public string GenerateReport()
         {
-            return $"Admin Report | {Username} | ManageUsers: {CanManageUsers} | ManageCourses: {CanManageCourses}";
+            return $"Admin Report | User: {Username} | Permissions: {permissions.Count}";
+        }
+
+        public void DisplayReport()
+        {
+            Console.WriteLine($"\n  === Admin Report: {Username} ===");
+            Console.WriteLine($"  Email       : {Email}");
+            DisplayPermissions();
         }
     }
 }

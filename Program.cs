@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Week_1;
 
@@ -12,79 +11,24 @@ namespace SmartLearnLMS
         static List<Enrollment> enrollments = new List<Enrollment>();
         static User currentUser = null;
 
-      
-            static void Main(string[] args)
-            {
-                Console.WriteLine("=== SmartLearn LMS - Week 3 Demo ===\n");
+        static void Main(string[] args)
+        {
+            // Seed courses — now using concrete derived types (Course is abstract)
+            courseList.Add(new VideoCourse(1, "C# Basics", "Learn C#", 120, "https://stream.example.com/csharp"));
+            courseList.Add(new LiveCourse(2, "SQL Server", "Databases", DateTime.Now.AddDays(3), 25, "https://meet.example.com/sql"));
+            courseList.Add(new TextCourse(3, "ASP.NET Core", "Web Dev", 300));
+            courseList.Add(new VideoCourse(4, "Advanced C#", "Deep C#", 180, "https://stream.example.com/advanced"));
+            courseList.Add(new LiveCourse(5, "Entity Framework", "EF Core ORM", DateTime.Now.AddDays(7), 20, "https://meet.example.com/ef"));
 
-                // 1. Polymorphic dashboard - no if-else needed!
-                Console.WriteLine("-- 1. POLYMORPHIC DASHBOARDS --");
-                List<User> users = new List<User>
-            {
-                new Student   ("alice",   "password1", "alice@email.com"),
-                new Instructor("bob",     "password2", "bob@email.com"),
-                new Admin     ("charlie", "password3", "charlie@email.com")
-            };
-                foreach (User user in users)
-                    user.DisplayDashboard(); // Works for ALL types - no if-else!
-
-                // 2. Abstract Course hierarchy
-                Console.WriteLine("\n-- 2. COURSE TYPES --");
-                List<Course> courses = new List<Course>
-            {
-                new VideoCourse(1, "C# Basics",     "Learn C#",        "bob", 30, 180, "https://stream.example.com"),
-                new LiveCourse (2, "Advanced OOP",  "OOP deep dive",   "bob", 20, DateTime.Now.AddDays(7), "https://meet.example.com"),
-                new TextCourse (3, "Design Patterns","GoF patterns",   "bob", 50, 320)
-            };
-                foreach (Course c in courses)
-                    c.DisplayCourseInfo();
-
-                // 3. Enroll student
-                Console.WriteLine("\n-- 3. ENROLLMENT --");
-                Student alice = (Student)users[0];
-                courses[0].Enroll(alice);
-                courses[1].Enroll(alice);
-
-                // 4. Ratings
-                Console.WriteLine("\n-- 4. RATINGS --");
-                courses[0].AddRating(5, "Excellent!");
-                courses[0].AddRating(4, "Very helpful.");
-                Console.WriteLine($"  Average: {courses[0].GetAverageRating():F1} stars");
-
-                // 5. Universal search - works across Courses AND Students!
-                Console.WriteLine("\n-- 5. UNIVERSAL SEARCH (keyword: 'OOP') --");
-                List<ISearchable> searchable = new List<ISearchable>();
-                searchable.AddRange(courses);
-                searchable.Add(alice);
-                foreach (ISearchable item in searchable)
-                    if (item.MatchesSearch("OOP"))
-                        Console.WriteLine("  Found: " + item.GetSearchSummary());
-
-                // 6. Reports
-                Console.WriteLine("\n-- 6. REPORTS --");
-                foreach (User u in users)
-                    u.DisplayReport();
-
-                // 7. Validation
-                Console.WriteLine("\n-- 7. VALIDATION --");
-                Student bad = new Student("dave", "pass", "bad");  // short password
-                bad.Email = "noemail";      // missing @ -> rejected
-                bad.Email = "dave@ok.com";  // valid -> accepted
-
-                // 8. Notifications auto-sent on enrollment
-                Console.WriteLine("\n-- 8. ALICE'S NOTIFICATIONS --");
-                foreach (string n in alice.GetNotificationHistory())
-                    Console.WriteLine("  " + n);
-
-                Console.WriteLine("\n=== Demo Complete ===");
-            }
+            bool running = true;
+            while (running)
+                running = ShowMainMenu();
         }
-    }
 
-    // ══════════════════════════════════════════════════════
-    //  MAIN MENU
-    // ══════════════════════════════════════════════════════
-    static bool ShowMainMenu()
+        // ══════════════════════════════════════════════════════
+        //  MAIN MENU
+        // ══════════════════════════════════════════════════════
+        static bool ShowMainMenu()
         {
             Console.Clear();
             Console.WriteLine("================================");
@@ -94,7 +38,8 @@ namespace SmartLearnLMS
             Console.WriteLine("  2. Login");
             Console.WriteLine("  3. View All Users   (test)");
             Console.WriteLine("  4. View All Courses (test)");
-            Console.WriteLine("  5. Exit");
+            Console.WriteLine("  5. Universal Search (test)");
+            Console.WriteLine("  6. Exit");
             Console.WriteLine("================================");
             Console.Write("  Choice: ");
             string choice = Console.ReadLine();
@@ -105,7 +50,8 @@ namespace SmartLearnLMS
                 case "2": LoginUser(); break;
                 case "3": ShowAllUsers(); break;
                 case "4": ShowAllCourses(); break;
-                case "5":
+                case "5": UniversalSearch(); break;
+                case "6":
                     Console.WriteLine("  Goodbye!");
                     return false;
                 default:
@@ -117,7 +63,7 @@ namespace SmartLearnLMS
         }
 
         // ══════════════════════════════════════════════════════
-        //  REGISTER — creates correct TYPE based on role
+        //  REGISTER
         // ══════════════════════════════════════════════════════
         static void RegisterUser()
         {
@@ -132,39 +78,19 @@ namespace SmartLearnLMS
             Console.Write("  Role (Student/Instructor/Admin): ");
             string role = Console.ReadLine();
 
-            // Validate
             if (string.IsNullOrWhiteSpace(username) || username.Length < 3)
-            {
-                Console.WriteLine("  Username must be at least 3 characters.");
-                Console.ReadKey(); return;
-            }
+            { Console.WriteLine("  Username must be at least 3 characters."); Console.ReadKey(); return; }
             if (!email.Contains("@") || !email.Contains("."))
-            {
-                Console.WriteLine("  Invalid email.");
-                Console.ReadKey(); return;
-            }
+            { Console.WriteLine("  Invalid email."); Console.ReadKey(); return; }
             if (password.Length < 6)
-            {
-                Console.WriteLine("  Password must be at least 6 characters.");
-                Console.ReadKey(); return;
-            }
+            { Console.WriteLine("  Password must be at least 6 characters."); Console.ReadKey(); return; }
             if (role != "Student" && role != "Instructor" && role != "Admin")
-            {
-                Console.WriteLine("  Invalid role. Must be Student, Instructor, or Admin.");
-                Console.ReadKey(); return;
-            }
+            { Console.WriteLine("  Invalid role. Must be Student, Instructor, or Admin."); Console.ReadKey(); return; }
 
-            // Check duplicate username
             User existing = userList.Find(u => u.Username == username);
             if (existing != null)
-            {
-                Console.WriteLine("  Username already exists!");
-                Console.ReadKey(); return;
-            }
+            { Console.WriteLine("  Username already exists!"); Console.ReadKey(); return; }
 
-            // ── KEY CHANGE FROM WEEK 1 ──
-            // Instead of: users.Add(username, password) + emails.Add + roles.Add
-            // Now: create the RIGHT TYPE based on role
             if (role == "Student")
                 userList.Add(new Student(username, password, email));
             else if (role == "Instructor")
@@ -177,7 +103,7 @@ namespace SmartLearnLMS
         }
 
         // ══════════════════════════════════════════════════════
-        //  LOGIN — finds User object, routes to correct dashboard
+        //  LOGIN — polymorphic dashboard (NO if-else chain!)
         // ══════════════════════════════════════════════════════
         static void LoginUser()
         {
@@ -189,25 +115,20 @@ namespace SmartLearnLMS
             Console.Write("  Username : "); string username = Console.ReadLine();
             Console.Write("  Password : "); string password = Console.ReadLine();
 
-            // Find user in list
             User found = userList.Find(u => u.Username == username);
 
             if (found == null)
-            {
-                Console.WriteLine("  User not found!"); Console.ReadKey(); return;
-            }
+            { Console.WriteLine("  User not found!"); Console.ReadKey(); return; }
             if (!found.ValidatePassword(password))
-            {
-                Console.WriteLine("  Wrong password!"); Console.ReadKey(); return;
-            }
+            { Console.WriteLine("  Wrong password!"); Console.ReadKey(); return; }
 
             currentUser = found;
-            Console.WriteLine($"\n  Welcome, {found.Username}!");
+            Console.WriteLine($"\n  Welcome, {found.Username}! [{found.GetUserType()}]");
             Console.ReadKey();
 
-            // ── KEY CHANGE FROM WEEK 1 ──
-            // Instead of: switch (currentRole) { case "Student": ... }
-            // Now: check the actual TYPE of the object
+            // ══ POLYMORPHISM — one line replaces the entire if-else chain ══
+            // currentUser.DisplayDashboard(); // shows which dashboard is called
+            // But we still need the full interactive dashboards:
             if (currentUser is Student student)
                 ShowStudentDashboard(student);
             else if (currentUser is Instructor instructor)
@@ -217,7 +138,7 @@ namespace SmartLearnLMS
         }
 
         // ══════════════════════════════════════════════════════
-        //  STUDENT DASHBOARD — receives Student object directly
+        //  STUDENT DASHBOARD
         // ══════════════════════════════════════════════════════
         static void ShowStudentDashboard(Student student)
         {
@@ -234,7 +155,10 @@ namespace SmartLearnLMS
                 Console.WriteLine("  3. Enroll in Course");
                 Console.WriteLine("  4. My Enrolled Courses");
                 Console.WriteLine("  5. Update My Progress");
-                Console.WriteLine("  6. Logout");
+                Console.WriteLine("  6. Rate a Course");
+                Console.WriteLine("  7. My Notifications");
+                Console.WriteLine("  8. My Report");
+                Console.WriteLine("  9. Logout");
                 Console.WriteLine("================================");
                 Console.Write("  Choice: ");
                 string choice = Console.ReadLine();
@@ -267,11 +191,9 @@ namespace SmartLearnLMS
                                 Console.WriteLine("  Course is full!");
                             else
                             {
-                                // Call Student's own method — direct OOP call
                                 student.EnrollInCourse(enrollId);
-                                selected.CurrentEnrollments++;
+                                selected.Enroll(student);
 
-                                // Also create Enrollment object
                                 enrollments.Add(new Enrollment(
                                     enrollments.Count + 1,
                                     student.Username,
@@ -296,7 +218,6 @@ namespace SmartLearnLMS
                         }
                         else
                         {
-                            // Call Student's own method
                             foreach (int id in student.EnrolledCourseIds)
                             {
                                 Course c = courseList.Find(co => co.CourseId == id);
@@ -313,28 +234,25 @@ namespace SmartLearnLMS
                     case "5":
                         Console.Clear();
                         if (student.EnrolledCourseIds.Count == 0)
-                        {
-                            Console.WriteLine("  No courses enrolled yet.");
-                            Console.ReadKey(); break;
-                        }
+                        { Console.WriteLine("  No courses enrolled yet."); Console.ReadKey(); break; }
                         Console.Write("  Enter Course ID : ");
                         int cId;
                         if (!int.TryParse(Console.ReadLine(), out cId))
-                        {
-                            Console.WriteLine("  Invalid ID."); Console.ReadKey(); break;
-                        }
+                        { Console.WriteLine("  Invalid ID."); Console.ReadKey(); break; }
                         Console.Write("  Enter Progress % (0-100): ");
                         int prog;
                         if (!int.TryParse(Console.ReadLine(), out prog))
-                        {
-                            Console.WriteLine("  Invalid number."); Console.ReadKey(); break;
-                        }
-                        // Call Student's own UpdateProgress method
+                        { Console.WriteLine("  Invalid number."); Console.ReadKey(); break; }
                         if (student.CourseProgress.ContainsKey(cId))
                         {
+                            student.ProgressPercentage = prog; // uses validated property
                             student.CourseProgress[cId] = prog;
                             Console.WriteLine($"  Progress updated to {prog}%");
-                            if (prog >= 100) Console.WriteLine("  Course completed!");
+                            if (prog >= 100)
+                            {
+                                Console.WriteLine("  🎉 Course completed!");
+                                student.SendNotification($"You completed course ID {cId}!");
+                            }
                         }
                         else
                             Console.WriteLine("  Not enrolled in this course.");
@@ -342,6 +260,43 @@ namespace SmartLearnLMS
                         break;
 
                     case "6":
+                        Console.Clear();
+                        ShowAllCourses();
+                        Console.Write("  Enter Course ID to rate: ");
+                        int rateId;
+                        if (int.TryParse(Console.ReadLine(), out rateId))
+                        {
+                            Course rc = courseList.Find(c => c.CourseId == rateId);
+                            if (rc == null) { Console.WriteLine("  Course not found."); }
+                            else
+                            {
+                                Console.Write("  Stars (1-5): ");
+                                int stars;
+                                int.TryParse(Console.ReadLine(), out stars);
+                                Console.Write("  Review: ");
+                                string rev = Console.ReadLine();
+                                rc.AddRating(stars, rev);
+                            }
+                        }
+                        Console.ReadKey();
+                        break;
+
+                    case "7":
+                        Console.Clear();
+                        Console.WriteLine($"  === Notifications for {student.Username} ===\n");
+                        var notifs = student.GetNotificationHistory();
+                        if (notifs.Count == 0) Console.WriteLine("  No notifications.");
+                        else foreach (string n in notifs) Console.WriteLine($"  {n}");
+                        Console.ReadKey();
+                        break;
+
+                    case "8":
+                        Console.Clear();
+                        student.DisplayReport();
+                        Console.ReadKey();
+                        break;
+
+                    case "9":
                         currentUser = null;
                         Console.WriteLine("  Logged out.");
                         Console.ReadKey();
@@ -357,7 +312,7 @@ namespace SmartLearnLMS
         }
 
         // ══════════════════════════════════════════════════════
-        //  INSTRUCTOR DASHBOARD — receives Instructor object
+        //  INSTRUCTOR DASHBOARD
         // ══════════════════════════════════════════════════════
         static void ShowInstructorDashboard(Instructor instructor)
         {
@@ -375,7 +330,9 @@ namespace SmartLearnLMS
                 Console.WriteLine("  4. Remove Course from My List");
                 Console.WriteLine("  5. Browse All Courses");
                 Console.WriteLine("  6. View All Students");
-                Console.WriteLine("  7. Logout");
+                Console.WriteLine("  7. My Notifications");
+                Console.WriteLine("  8. My Report");
+                Console.WriteLine("  9. Logout");
                 Console.WriteLine("================================");
                 Console.Write("  Choice: ");
                 string choice = Console.ReadLine();
@@ -385,7 +342,6 @@ namespace SmartLearnLMS
                     case "1":
                         Console.Clear();
                         instructor.DisplayInfo();
-                        Console.WriteLine($"  Teaching {instructor.CourseIds.Count} course(s).");
                         Console.ReadKey();
                         break;
 
@@ -397,10 +353,8 @@ namespace SmartLearnLMS
                         if (int.TryParse(Console.ReadLine(), out addId))
                         {
                             Course c = courseList.Find(co => co.CourseId == addId);
-                            if (c == null)
-                                Console.WriteLine("  Course not found.");
-                            else
-                                instructor.AddCourse(addId); // Instructor's own method
+                            if (c == null) Console.WriteLine("  Course not found.");
+                            else instructor.AddCourse(addId);
                         }
                         Console.ReadKey();
                         break;
@@ -414,16 +368,13 @@ namespace SmartLearnLMS
                         }
                         else
                         {
-                            instructor.ShowMyCourses(); // Instructor's own method
-                            Console.WriteLine();
-                            // Also show course names
                             foreach (int id in instructor.CourseIds)
                             {
                                 Course c = courseList.Find(co => co.CourseId == id);
                                 if (c != null)
                                 {
-                                    Console.WriteLine($"  [{id}] {c.Title}");
-                                    Console.WriteLine($"       Enrolled: {c.CurrentEnrollments}/{c.MaxStudents}");
+                                    c.DisplayCourseInfo();
+                                    Console.WriteLine("  ---");
                                 }
                             }
                         }
@@ -436,7 +387,7 @@ namespace SmartLearnLMS
                         Console.Write("  Enter Course ID to remove: ");
                         int removeId;
                         if (int.TryParse(Console.ReadLine(), out removeId))
-                            instructor.RemoveCourse(removeId); // Instructor's own method
+                            instructor.RemoveCourse(removeId);
                         Console.ReadKey();
                         break;
 
@@ -465,6 +416,21 @@ namespace SmartLearnLMS
                         break;
 
                     case "7":
+                        Console.Clear();
+                        Console.WriteLine($"  === Notifications for {instructor.Username} ===\n");
+                        var notifs = instructor.GetNotificationHistory();
+                        if (notifs.Count == 0) Console.WriteLine("  No notifications.");
+                        else foreach (string n in notifs) Console.WriteLine($"  {n}");
+                        Console.ReadKey();
+                        break;
+
+                    case "8":
+                        Console.Clear();
+                        instructor.DisplayReport();
+                        Console.ReadKey();
+                        break;
+
+                    case "9":
                         currentUser = null;
                         Console.WriteLine("  Logged out.");
                         Console.ReadKey();
@@ -480,7 +446,7 @@ namespace SmartLearnLMS
         }
 
         // ══════════════════════════════════════════════════════
-        //  ADMIN DASHBOARD — receives Admin object
+        //  ADMIN DASHBOARD
         // ══════════════════════════════════════════════════════
         static void ShowAdminDashboard(Admin admin)
         {
@@ -498,7 +464,8 @@ namespace SmartLearnLMS
                 Console.WriteLine("  4. View All Instructors");
                 Console.WriteLine("  5. View All Courses");
                 Console.WriteLine("  6. System Stats");
-                Console.WriteLine("  7. Logout");
+                Console.WriteLine("  7. My Report");
+                Console.WriteLine("  8. Logout");
                 Console.WriteLine("================================");
                 Console.Write("  Choice: ");
                 string choice = Console.ReadLine();
@@ -508,28 +475,19 @@ namespace SmartLearnLMS
                     case "1":
                         Console.Clear();
                         admin.DisplayInfo();
-                        admin.DisplayPermissions(); // Admin's own method
+                        admin.DisplayPermissions();
                         Console.ReadKey();
                         break;
 
                     case "2":
                         Console.Clear();
                         Console.WriteLine("  === All Users ===\n");
-                        if (userList.Count == 0)
-                        {
-                            Console.WriteLine("  No users yet.");
-                        }
+                        if (userList.Count == 0) Console.WriteLine("  No users yet.");
                         else
                         {
-                            // POLYMORPHISM — same loop, each shows its own DisplayInfo
                             foreach (User user in userList)
                             {
-                                // Show type label
-                                string type = user is Student ? "[STUDENT]"
-                                            : user is Instructor ? "[INSTRUCTOR]"
-                                            : user is Admin ? "[ADMIN]"
-                                            : "[USER]";
-                                Console.WriteLine($"  {type}");
+                                Console.WriteLine($"  [{user.GetUserType()}]");
                                 user.DisplayInfo();
                                 Console.WriteLine("  ---");
                             }
@@ -582,9 +540,7 @@ namespace SmartLearnLMS
                     case "6":
                         Console.Clear();
                         Console.WriteLine("  === System Stats ===\n");
-                        int studentCount = 0;
-                        int instructorCount = 0;
-                        int adminCount = 0;
+                        int studentCount = 0, instructorCount = 0, adminCount = 0;
                         foreach (User user in userList)
                         {
                             if (user is Student) studentCount++;
@@ -601,6 +557,12 @@ namespace SmartLearnLMS
                         break;
 
                     case "7":
+                        Console.Clear();
+                        admin.DisplayReport();
+                        Console.ReadKey();
+                        break;
+
+                    case "8":
                         currentUser = null;
                         Console.WriteLine("  Logged out.");
                         Console.ReadKey();
@@ -622,18 +584,10 @@ namespace SmartLearnLMS
         {
             Console.Clear();
             Console.WriteLine("  === All Users ===\n");
-            if (userList.Count == 0)
-            {
-                Console.WriteLine("  No users yet.");
-                Console.ReadKey(); return;
-            }
+            if (userList.Count == 0) { Console.WriteLine("  No users yet."); Console.ReadKey(); return; }
             foreach (User user in userList)
             {
-                string type = user is Student ? "[STUDENT]"
-                            : user is Instructor ? "[INSTRUCTOR]"
-                            : user is Admin ? "[ADMIN]"
-                            : "[USER]";
-                Console.WriteLine($"  {type}");
+                Console.WriteLine($"  [{user.GetUserType()}]");
                 user.DisplayInfo();
                 Console.WriteLine("  ---");
             }
@@ -645,9 +599,40 @@ namespace SmartLearnLMS
             Console.WriteLine("  === Available Courses ===\n");
             foreach (Course course in courseList)
             {
-                course.DisplayInfo();
+                course.DisplayCourseInfo();
+                Console.WriteLine($"  Est. Hours: {course.GetEstimatedHours()}h | Rating: {course.GetAverageRating():F1}/5");
                 Console.WriteLine("  ---");
             }
+        }
+
+        // ══════════════════════════════════════════════════════
+        //  UNIVERSAL SEARCH — ISearchable polymorphism demo
+        // ══════════════════════════════════════════════════════
+        static void UniversalSearch()
+        {
+            Console.Clear();
+            Console.WriteLine("================================");
+            Console.WriteLine("       UNIVERSAL SEARCH         ");
+            Console.WriteLine("================================");
+            Console.Write("  Enter keyword: ");
+            string keyword = Console.ReadLine();
+
+            List<ISearchable> searchableItems = new List<ISearchable>();
+            foreach (Course c in courseList) searchableItems.Add(c);
+            foreach (User u in userList) { if (u is ISearchable s) searchableItems.Add(s); }
+
+            Console.WriteLine($"\n  Results for '{keyword}':\n");
+            bool any = false;
+            foreach (ISearchable item in searchableItems)
+            {
+                if (item.MatchesSearch(keyword))
+                {
+                    Console.WriteLine($"  ✓ {item.GetSearchSummary()}");
+                    any = true;
+                }
+            }
+            if (!any) Console.WriteLine("  No results found.");
+            Console.ReadKey();
         }
     }
 }

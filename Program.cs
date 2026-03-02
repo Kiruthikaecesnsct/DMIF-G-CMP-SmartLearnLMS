@@ -1,514 +1,375 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿
+using System.Text.Json;
 using Week_1;
+using static System.Net.WebRequestMethods;
 
-namespace SmartLearnLMS
+
+
+// THE ARRAY MOVING NIGHTMARE-Code 1 — The Array Problem
+//using Week_1;
+
+//Course[] courses = new Course[10]; // Only 10 spaces!
+//courses[0] = new Course { Title = "C# Basics" };
+//courses[1] = new Course { Title = "OOP Magic" };
+
+//// Need space for course #11? You have to "move houses"!
+//Course[] biggerHouse = new Course[20];          // Get a bigger place
+//Array.Copy(courses, biggerHouse, courses.Length); // Pack and move EVERYTHING
+//courses = biggerHouse;                            // New address
+
+
+
+//Code 2 — Array vs List Side-by-Side
+//// NEW WAY - List<T> (magical)
+//List<Course> courses = new List<Course>(); // No size needed!
+//courses.Add(new Course { Title = "C# Basics" });
+//courses.Add(new Course { Title = "OOP Mastery" });
+//courses.Add(new Course { Title = "LINQ Wizardry" });
+//courses.Add(new Course { Title = "Keep adding..." });
+//courses.Add(new Course { Title = "...it never gets full!" });
+
+//Console.WriteLine($"We have {courses.Count} courses!"); // IT counts for us!
+
+
+//Code 3 — List<T> Superpowers (All Key Methods)
+//List<Student> students = new List<Student>();
+
+//// SUPERPOWER #1: Add to the end
+//students.Add(new Student("alice", "pass123", "alice@email.com"));
+//students.Add(new Student("bob", "pass123", "bob@email.com"));
+//students.Add(new Student("charlie", "pass123", "charlie@email.com"));
+//Console.WriteLine($"We have {students.Count} students");
+
+//// SUPERPOWER #2: Insert at a specific position
+//students.Insert(0, new Student("zara", "pass123", "zara@email.com"));
+//Console.WriteLine($"First student is now: {students[0].Username}"); // zara!
+
+//// SUPERPOWER #3: Find the FIRST match
+//Student alice = students.Find(s => s.Username == "alice");
+//Console.WriteLine($"Found: {alice?.Username}");
+
+//// SUPERPOWER #4: Find ALL matches
+//List<Student> active = students.FindAll(s => s.EnrolledCourseIds.Count > 0);
+//Console.WriteLine($"Active students: {active.Count}");
+
+//// SUPERPOWER #5: Check if something exists
+//bool hasAlice = students.Contains(alice);
+//Console.WriteLine($"Do we have Alice? {hasAlice}");
+
+//// SUPERPOWER #6: Remove items
+//students.RemoveAt(0); // Remove by index
+//Console.WriteLine($"After removing first: {students.Count} students");
+
+//// SUPERPOWER #7: Sort
+//students.Sort((a, b) => a.Username.CompareTo(b.Username));
+//Console.WriteLine("Sorted alphabetically!");
+//foreach (var s in students)
+//{
+//    Console.WriteLine($"  - {s.Username}");
+//}
+
+
+
+////Code 4 — Dictionary Basics
+//// Create a phonebook: Username (string) → Student object
+//Dictionary<string, Student> studentBook = new Dictionary<string, Student>();
+
+//// Add entries: key = username, value = Student object
+//studentBook.Add("alice123", new Student("alice123", "pass", "alice@email.com"));
+//studentBook.Add("bob456", new Student("bob456", "pass", "bob@email.com"));
+//studentBook.Add("charlie789", new Student("charlie789", "pass", "charlie@email.com"));
+
+//// INSTANT lookup — no looping needed!
+//Student alice = studentBook["alice123"];
+//Console.WriteLine($"Found instantly: {alice.Username}");
+
+//// Check before looking up (avoids errors)
+//if (studentBook.ContainsKey("zara999"))
+//{
+//    Student zara = studentBook["zara999"];
+//}
+//else
+//{
+//    Console.WriteLine("Zara not found");
+//}
+
+//// BEST PRACTICE: TryGetValue (safe lookup)
+//if (studentBook.TryGetValue("bob456", out Student bob))
+//{
+//    Console.WriteLine($"Found Bob: {bob.Email}");
+//}
+
+//// Loop through all KEYS (usernames)
+//foreach (string username in studentBook.Keys)
+//{
+//    Console.WriteLine($"Username: {username}");
+//}
+
+//// Loop through all VALUES (student objects)
+//foreach (Student student in studentBook.Values)
+//{
+//    Console.WriteLine($"Student: {student.Username}");
+//}
+
+//// Loop through BOTH key and value
+//foreach (KeyValuePair<string, Student> pair in studentBook)
+//{
+//    Console.WriteLine($"Key: {pair.Key} → Value: {pair.Value.Username}");
+//}
+
+
+
+
+
+
+// ─── Shared Data (ONE place, used everywhere) ─────────────────────────────────
+List<Student> students = Student.GetAllStudents();
+List<Course> courses = Course.GetAllCourses();
+
+// ─── LINQ Demo Functions ──────────────────────────────────────────────────────
+
+void Demo_GroupBy()
 {
-    class Program
+    Console.WriteLine("========== GROUP BY DEMO ==========\n");
+
+    var studentsByPerformance = students
+        .GroupBy(s =>
+        {
+            if (s.ProgressPercentage >= 80) return "High Performer";
+            if (s.ProgressPercentage >= 50) return "Medium Performer";
+            return "Needs Support";
+        })
+        .ToList();
+
+    Console.WriteLine("📊 STUDENT PERFORMANCE REPORT\n");
+    foreach (var group in studentsByPerformance)
     {
-        static List<User> userList = new List<User>();
-        static List<Course> courseList = new List<Course>();
-        static List<Enrollment> enrollments = new List<Enrollment>();
-        static User currentUser = null;
+        Console.WriteLine($"{group.Key}: {group.Count()} students");
+        foreach (var student in group)
+            Console.WriteLine($"  - {student.Username}: {student.ProgressPercentage}%");
+        Console.WriteLine();
+    }
 
-        static void Main(string[] args)
-        {
-            InitializeCourses();
+    var coursesByCategory = courses.GroupBy(c => c.Category).ToList();
 
-            bool running = true;
-            while (running)
-                running = ShowMainMenu();
-        }
-
-        // ══════════════════════════════════════════════════════
-        //  SAMPLE DATA
-        // ══════════════════════════════════════════════════════
-        static void InitializeCourses()
-        {
-            // 5 Online Courses (IDs 101-105)
-            courseList.Add(new OnlineCourse(101, "C# Fundamentals", "Learn C# from scratch", "Prof. Smith", "Programming", 450));
-            courseList.Add(new OnlineCourse(102, "Python for Beginners", "Intro to Python programming", "Prof. Johnson", "Programming", 360));
-            courseList.Add(new OnlineCourse(103, "Web Development Basics", "HTML, CSS and JS fundamentals", "Prof. Garcia", "Web Development", 540));
-            courseList.Add(new OnlineCourse(104, "Data Structures", "Arrays, Lists, Trees and more", "Prof. Smith", "Computer Science", 600));
-            courseList.Add(new OnlineCourse(105, "Machine Learning Intro", "Basics of ML and AI concepts", "Prof. Lee", "Data Science", 720));
-
-            // 3 In-Person Courses (IDs 201-203)
-            courseList.Add(new InPersonCourse(201, "Database Design Workshop", "Relational DB and SQL", "Prof. Johnson", "Database", 25, "B-101", "Engineering Building"));
-            courseList.Add(new InPersonCourse(202, "Network Security Lab", "Practical cybersecurity skills", "Prof. Brown", "Security", 20, "C-205", "CS Building"));
-            courseList.Add(new InPersonCourse(203, "Mobile App Development", "Build iOS and Android apps", "Prof. Garcia", "Mobile", 30, "A-301", "Tech Center"));
-
-            // 2 Hybrid Courses (IDs 301-302)
-            courseList.Add(new HybridCourse(301, "Full-Stack Development", "Frontend + Backend full stack", "Prof. Garcia", "Web Development", 30, 720, "C-201", "CS Building"));
-            courseList.Add(new HybridCourse(302, "Cloud Computing", "AWS, Azure and cloud concepts", "Prof. Lee", "Cloud", 25, 600, "D-101", "Engineering Building"));
-        }
-
-        // ══════════════════════════════════════════════════════
-        //  MAIN MENU
-        // ══════════════════════════════════════════════════════
-        static bool ShowMainMenu()
-        {
-            Console.Clear();
-            Console.WriteLine("╔════════════════════════════════╗");
-            Console.WriteLine("║    Welcome to SmartLearn LMS   ║");
-            Console.WriteLine("╚════════════════════════════════╝");
-            Console.WriteLine("  [1] Register");
-            Console.WriteLine("  [2] Login");
-            Console.WriteLine("  [3] View All Users   (test)");
-            Console.WriteLine("  [4] View All Courses (test)");
-            Console.WriteLine("  [5] Universal Search (test)");
-            Console.WriteLine("  [6] Exit");
-            Console.WriteLine("════════════════════════════════");
-            Console.Write("  Choice: ");
-            string choice = Console.ReadLine();
-
-            switch (choice)
-            {
-                case "1": RegisterUser(); break;
-                case "2": LoginUser(); break;
-                case "3": ShowAllUsers(); break;
-                case "4": BrowseCourses(); break;
-                case "5": UniversalSearch(); break;
-                case "6":
-                    Console.WriteLine("  Goodbye!");
-                    return false;
-                default:
-                    Console.WriteLine("  Invalid choice.");
-                    Console.ReadKey();
-                    break;
-            }
-            return true;
-        }
-
-        // ══════════════════════════════════════════════════════
-        //  REGISTER
-        // ══════════════════════════════════════════════════════
-        static void RegisterUser()
-        {
-            Console.Clear();
-            Console.WriteLine("╔════════════════════════════════╗");
-            Console.WriteLine("║            REGISTER            ║");
-            Console.WriteLine("╚════════════════════════════════╝");
-
-            Console.Write("  Username : "); string username = Console.ReadLine();
-            Console.Write("  Email    : "); string email = Console.ReadLine();
-            Console.Write("  Password : "); string password = Console.ReadLine();
-            Console.Write("  Role (Student/Instructor/Admin): "); string role = Console.ReadLine();
-
-            if (string.IsNullOrWhiteSpace(username) || username.Length < 3)
-            { Console.WriteLine("  ✗ Username must be at least 3 characters."); Console.ReadKey(); return; }
-            if (string.IsNullOrWhiteSpace(email) || !email.Contains("@"))
-            { Console.WriteLine("  ✗ Invalid email - must contain @"); Console.ReadKey(); return; }
-            if (password.Length < 8)
-            { Console.WriteLine("  ✗ Password must be at least 8 characters"); Console.ReadKey(); return; }
-            if (!password.Any(char.IsDigit))
-            { Console.WriteLine("  ✗ Password must contain at least 1 number"); Console.ReadKey(); return; }
-            if (role != "Student" && role != "Instructor" && role != "Admin")
-            { Console.WriteLine("  ✗ Invalid role."); Console.ReadKey(); return; }
-
-            if (userList.Find(u => u.Username == username) != null)
-            { Console.WriteLine("  ✗ Username already exists!"); Console.ReadKey(); return; }
-
-            if (role == "Student")
-                userList.Add(new Student(username, password, email));
-            else if (role == "Instructor")
-                userList.Add(new Instructor(username, password, email));
-            else
-                userList.Add(new Admin(username, password, email));
-
-            Console.WriteLine($"\n  ✓ Registered as {role}! Welcome, {username}!");
-            Console.ReadKey();
-        }
-
-        // ══════════════════════════════════════════════════════
-        //  LOGIN — pure polymorphism, zero if-else type checks
-        // ══════════════════════════════════════════════════════
-        static void LoginUser()
-        {
-            Console.Clear();
-            Console.WriteLine("╔════════════════════════════════╗");
-            Console.WriteLine("║              LOGIN             ║");
-            Console.WriteLine("╚════════════════════════════════╝");
-
-            Console.Write("  Username : "); string username = Console.ReadLine();
-            Console.Write("  Password : "); string password = Console.ReadLine();
-
-            User found = userList.Find(u => u.Username == username);
-            if (found == null) { Console.WriteLine("  ✗ User not found!"); Console.ReadKey(); return; }
-            if (!found.ValidatePassword(password)) { Console.WriteLine("  ✗ Wrong password!"); Console.ReadKey(); return; }
-
-            currentUser = found;
-            Console.WriteLine($"\n  ✓ Welcome, {found.Username}! [{found.GetUserType()}]");
-            Console.ReadKey();
-
-            // ══ ONE POLYMORPHIC CALL — no if-else needed ══
-            RunDashboard(currentUser);
-        }
-
-        // ══════════════════════════════════════════════════════
-        //  DASHBOARD RUNNER — fully polymorphic
-        // ══════════════════════════════════════════════════════
-        static void RunDashboard(User user)
-        {
-            bool open = true;
-            while (open)
-            {
-                Console.Clear();
-                user.DisplayDashboard();
-                Console.WriteLine();
-                Console.Write("  Choice: ");
-                string choice = Console.ReadLine();
-
-                if (user is Student student)
-                    open = HandleStudentChoice(student, choice);
-                else if (user is Instructor instructor)
-                    open = HandleInstructorChoice(instructor, choice);
-                else if (user is Admin admin)
-                    open = HandleAdminChoice(admin, choice);
-            }
-        }
-
-        // ══════════════════════════════════════════════════════
-        //  STUDENT HANDLERS
-        // ══════════════════════════════════════════════════════
-        static bool HandleStudentChoice(Student student, string choice)
-        {
-            switch (choice)
-            {
-                case "1":
-                    Console.Clear();
-                    BrowseAndEnroll(student);
-                    return true;
-
-                case "2":
-                    Console.Clear();
-                    Console.WriteLine($"  === {student.Username}'s Enrolled Courses ===\n");
-                    if (student.EnrolledCourseIds.Count == 0)
-                        Console.WriteLine("  No courses enrolled yet.");
-                    else
-                    {
-                        foreach (int id in student.EnrolledCourseIds)
-                        {
-                            Course c = courseList.Find(co => co.CourseId == id);
-                            int prog = student.CourseProgress.ContainsKey(id) ? student.CourseProgress[id] : 0;
-                            Console.WriteLine($"  [{id}] {c?.Title ?? "Unknown"} — Progress: {prog}%");
-                        }
-                    }
-                    Console.ReadKey();
-                    return true;
-
-                case "3":
-                    Console.Clear();
-                    UpdateProgress(student);
-                    return true;
-
-                case "4":
-                    Console.Clear();
-                    Console.WriteLine($"  === Statistics for {student.Username} ===\n");
-                    student.DisplayInfo();
-                    Console.ReadKey();
-                    return true;
-
-                case "5":
-                    Console.Clear();
-                    RateCourse(student);
-                    return true;
-
-                case "6":
-                    Console.Clear();
-                    Console.WriteLine($"  === Notifications for {student.Username} ===\n");
-                    var notifs = student.GetNotificationHistory();
-                    if (notifs.Count == 0) Console.WriteLine("  No notifications.");
-                    else foreach (string n in notifs) Console.WriteLine($"  🔔 {n}");
-                    Console.ReadKey();
-                    return true;
-
-                case "7":
-                    currentUser = null;
-                    Console.WriteLine("  ✓ Logged out.");
-                    Console.ReadKey();
-                    return false;
-
-                default:
-                    Console.WriteLine("  Invalid choice.");
-                    Console.ReadKey();
-                    return true;
-            }
-        }
-
-        static void BrowseAndEnroll(Student student)
-        {
-            BrowseCourses();
-            Console.Write("  Enter Course ID to enroll (0 to cancel): ");
-            int enrollId;
-            if (!int.TryParse(Console.ReadLine(), out enrollId) || enrollId == 0) return;
-
-            Course selected = courseList.Find(c => c.CourseId == enrollId);
-            if (selected == null)
-                Console.WriteLine("  ✗ Course not found.");
-            else if (!selected.CanEnroll(student))
-                Console.WriteLine("  ✗ Course is full!");
-            else if (student.EnrolledCourseIds.Contains(enrollId))
-                Console.WriteLine("  ✗ Already enrolled in this course.");
-            else
-            {
-                selected.Enroll(student);
-                enrollments.Add(new Enrollment(enrollments.Count + 1, student.Username, enrollId, DateTime.Now, 0, false));
-            }
-            Console.ReadKey();
-        }
-
-        static void UpdateProgress(Student student)
-        {
-            if (student.EnrolledCourseIds.Count == 0)
-            { Console.WriteLine("  No courses enrolled yet."); Console.ReadKey(); return; }
-
-            Console.WriteLine($"  === Update Progress for {student.Username} ===\n");
-            foreach (int id in student.EnrolledCourseIds)
-            {
-                Course c = courseList.Find(co => co.CourseId == id);
-                int prog = student.CourseProgress.ContainsKey(id) ? student.CourseProgress[id] : 0;
-                Console.WriteLine($"  [{id}] {c?.Title ?? "Unknown"} — {prog}%");
-            }
-
-            Console.Write("\n  Enter Course ID: ");
-            int cId;
-            if (!int.TryParse(Console.ReadLine(), out cId)) { Console.WriteLine("  ✗ Invalid ID."); Console.ReadKey(); return; }
-            Console.Write("  Enter Progress % (0-100): ");
-            int prog2;
-            if (!int.TryParse(Console.ReadLine(), out prog2)) { Console.WriteLine("  ✗ Invalid number."); Console.ReadKey(); return; }
-
-            if (student.CourseProgress.ContainsKey(cId))
-            {
-                student.ProgressPercentage = prog2;
-                student.CourseProgress[cId] = prog2;
-                Console.WriteLine($"  ✓ Progress updated to {prog2}%");
-                if (prog2 >= 100)
-                {
-                    Console.WriteLine("  🎉 Course completed!");
-                    student.SendNotification($"You completed Course ID {cId}!");
-                }
-            }
-            else
-                Console.WriteLine("  ✗ Not enrolled in this course.");
-            Console.ReadKey();
-        }
-
-        static void RateCourse(Student student)
-        {
-            BrowseCourses();
-            Console.Write("  Enter Course ID to rate: ");
-            int rId;
-            if (!int.TryParse(Console.ReadLine(), out rId)) { Console.ReadKey(); return; }
-            Course rc = courseList.Find(c => c.CourseId == rId);
-            if (rc == null) { Console.WriteLine("  ✗ Course not found."); Console.ReadKey(); return; }
-            Console.Write("  Stars (1-5): ");
-            int stars;
-            int.TryParse(Console.ReadLine(), out stars);
-            Console.Write("  Review: ");
-            string review = Console.ReadLine();
-            rc.AddRating(stars, review);
-            Console.ReadKey();
-        }
-
-        // ══════════════════════════════════════════════════════
-        //  INSTRUCTOR HANDLERS
-        // ══════════════════════════════════════════════════════
-        static bool HandleInstructorChoice(Instructor instructor, string choice)
-        {
-            switch (choice)
-            {
-                case "1":
-                    Console.Clear();
-                    Console.WriteLine($"  === {instructor.Username}'s Courses ===\n");
-                    if (instructor.CourseIds.Count == 0) Console.WriteLine("  No courses added.");
-                    else
-                    {
-                        foreach (int id in instructor.CourseIds)
-                        {
-                            Course c = courseList.Find(co => co.CourseId == id);
-                            c?.DisplayCourseInfo();
-                            Console.WriteLine();
-                        }
-                    }
-                    Console.ReadKey();
-                    return true;
-
-                case "2":
-                    Console.Clear();
-                    BrowseCourses();
-                    Console.Write("  Enter Course ID to add to your list: ");
-                    int addId;
-                    if (int.TryParse(Console.ReadLine(), out addId))
-                    {
-                        Course c = courseList.Find(co => co.CourseId == addId);
-                        if (c == null) Console.WriteLine("  ✗ Course not found.");
-                        else instructor.AddCourse(addId);
-                    }
-                    Console.ReadKey();
-                    return true;
-
-                case "3":
-                    Console.Clear();
-                    Console.WriteLine("  === Student Roster ===\n");
-                    bool any = false;
-                    foreach (User u in userList)
-                    {
-                        if (u is Student s)
-                        {
-                            s.DisplayInfo();
-                            Console.WriteLine("  ---");
-                            any = true;
-                        }
-                    }
-                    if (!any) Console.WriteLine("  No students registered.");
-                    Console.ReadKey();
-                    return true;
-
-                case "4":
-                    Console.Clear();
-                    Console.WriteLine("  [Grade Assignments — Coming in Week 4]");
-                    Console.ReadKey();
-                    return true;
-
-                case "5":
-                    Console.Clear();
-                    Console.WriteLine($"  === Notifications for {instructor.Username} ===\n");
-                    var notifs = instructor.GetNotificationHistory();
-                    if (notifs.Count == 0) Console.WriteLine("  No notifications.");
-                    else foreach (string n in notifs) Console.WriteLine($"  🔔 {n}");
-                    Console.ReadKey();
-                    return true;
-
-                case "6":
-                    currentUser = null;
-                    Console.WriteLine("  ✓ Logged out.");
-                    Console.ReadKey();
-                    return false;
-
-                default:
-                    Console.WriteLine("  Invalid choice.");
-                    Console.ReadKey();
-                    return true;
-            }
-        }
-
-        // ══════════════════════════════════════════════════════
-        //  ADMIN HANDLERS
-        // ══════════════════════════════════════════════════════
-        static bool HandleAdminChoice(Admin admin, string choice)
-        {
-            switch (choice)
-            {
-                case "1":
-                    Console.Clear();
-                    Console.WriteLine("  === All Users ===\n");
-                    if (userList.Count == 0) Console.WriteLine("  No users yet.");
-                    else
-                    {
-                        foreach (User user in userList)
-                        {
-                            Console.WriteLine($"  [{user.GetUserType()}]");
-                            user.DisplayInfo();
-                            Console.WriteLine("  ---");
-                        }
-                    }
-                    Console.ReadKey();
-                    return true;
-
-                case "2":
-                    Console.Clear();
-                    BrowseCourses();
-                    Console.ReadKey();
-                    return true;
-
-                case "3":
-                    Console.Clear();
-                    Console.WriteLine("  === System Report ===\n");
-                    int students = 0, instructors = 0, admins = 0;
-                    foreach (User u in userList)
-                    {
-                        if (u is Student) students++;
-                        else if (u is Instructor) instructors++;
-                        else if (u is Admin) admins++;
-                    }
-                    Console.WriteLine($"  Total Users      : {userList.Count}");
-                    Console.WriteLine($"  Students         : {students}");
-                    Console.WriteLine($"  Instructors      : {instructors}");
-                    Console.WriteLine($"  Admins           : {admins}");
-                    Console.WriteLine($"  Total Courses    : {courseList.Count}");
-                    Console.WriteLine($"  Total Enrollments: {enrollments.Count}");
-                    Console.ReadKey();
-                    return true;
-
-                case "4":
-                    Console.Clear();
-                    Console.WriteLine("  === System Settings ===");
-                    admin.DisplayInfo();
-                    Console.ReadKey();
-                    return true;
-
-                case "5":
-                    currentUser = null;
-                    Console.WriteLine("  ✓ Logged out.");
-                    Console.ReadKey();
-                    return false;
-
-                default:
-                    Console.WriteLine("  Invalid choice.");
-                    Console.ReadKey();
-                    return true;
-            }
-        }
-
-        // ══════════════════════════════════════════════════════
-        //  SHARED UTILITIES
-        // ══════════════════════════════════════════════════════
-        static void ShowAllUsers()
-        {
-            Console.Clear();
-            Console.WriteLine("  === All Users ===\n");
-            if (userList.Count == 0) { Console.WriteLine("  No users yet."); Console.ReadKey(); return; }
-            foreach (User user in userList)
-            {
-                Console.WriteLine($"  [{user.GetUserType()}]");
-                user.DisplayInfo();
-                Console.WriteLine("  ---");
-            }
-            Console.ReadKey();
-        }
-
-        static void BrowseCourses()
-        {
-            Console.Clear();
-            Console.WriteLine("╔════════════════════════════════╗");
-            Console.WriteLine("║       AVAILABLE COURSES        ║");
-            Console.WriteLine("╚════════════════════════════════╝");
-            Console.WriteLine();
-            foreach (Course course in courseList)
-            {
-                course.DisplayCourseInfo();
-                Console.WriteLine();
-            }
-        }
-
-        static void UniversalSearch()
-        {
-            Console.Clear();
-            Console.WriteLine("╔════════════════════════════════╗");
-            Console.WriteLine("║        UNIVERSAL SEARCH        ║");
-            Console.WriteLine("╚════════════════════════════════╝");
-            Console.Write("  Enter keyword: ");
-            string keyword = Console.ReadLine();
-
-            List<ISearchable> searchable = new List<ISearchable>();
-            foreach (Course c in courseList) searchable.Add(c);
-            foreach (User u in userList) { if (u is ISearchable s) searchable.Add(s); }
-
-            List<ISearchable> results = SearchEngine.Search(searchable, keyword);
-            Console.WriteLine();
-            SearchEngine.DisplayResults(results);
-            Console.ReadKey();
-        }
+    Console.WriteLine("📚 COURSES BY CATEGORY\n");
+    foreach (var categoryGroup in coursesByCategory)
+    {
+        Console.WriteLine($"{categoryGroup.Key} ({categoryGroup.Count()} courses):");
+        foreach (var course in categoryGroup)
+            Console.WriteLine($"  - {course.Title}");
+        Console.WriteLine();
     }
 }
+
+void Demo_Aggregates()
+{
+    Console.WriteLine("========== AGGREGATES DEMO ==========\n");
+
+    if (students.Count == 0 || courses.Count == 0)
+    {
+        Console.WriteLine("⚠️  No data available for analytics.\n");
+        return;
+    }
+
+    int totalStudents = students.Count;
+    int totalCourses = courses.Count;
+    double averageProgress = students.Average(s => s.ProgressPercentage);
+    int totalEnrollments = courses.Sum(c => c.CurrentEnrollments);
+    double highestProgress = students.Max(s => s.ProgressPercentage);
+    double lowestProgress = students.Min(s => s.ProgressPercentage);
+
+    Course mostPopular = courses
+        .OrderByDescending(c => c.CurrentEnrollments)
+        .First();
+
+    Console.WriteLine("🎛️  SMARTLEARN DASHBOARD");
+    Console.WriteLine($"Total Students:      {totalStudents}");
+    Console.WriteLine($"Total Courses:       {totalCourses}");
+    Console.WriteLine($"Average Progress:    {averageProgress:F1}%");
+    Console.WriteLine($"Total Enrollments:   {totalEnrollments}");
+    Console.WriteLine($"Highest Progress:    {highestProgress}%");
+    Console.WriteLine($"Lowest Progress:     {lowestProgress}%");
+    Console.WriteLine($"Most Popular Course: {mostPopular.Title} ({mostPopular.CurrentEnrollments} students)\n");
+}
+
+void Demo_Pagination()
+{
+    Console.WriteLine("========== PAGINATION DEMO ==========\n");
+
+    if (courses.Count == 0)
+    {
+        Console.WriteLine("⚠️  No courses available.\n");
+        return;
+    }
+
+    int pageSize = 3;
+    int pageNumber = 1;
+
+    var coursesForPage = courses
+        .OrderBy(c => c.Title)
+        .Skip((pageNumber - 1) * pageSize)
+        .Take(pageSize)
+        .ToList();
+
+    int totalPages = (int)Math.Ceiling(courses.Count / (double)pageSize);
+
+    Console.WriteLine($"📄 Page {pageNumber} of {totalPages}\n");
+    foreach (var course in coursesForPage)
+        Console.WriteLine($"- {course.Title}");
+
+    Console.WriteLine($"\nShowing {coursesForPage.Count} of {courses.Count} courses\n");
+}
+
+void Demo_DistinctAndSelectMany()
+{
+    Console.WriteLine("========== DISTINCT & SELECTMANY DEMO ==========\n");
+
+    if (courses.Count == 0 || students.Count == 0)
+    {
+        Console.WriteLine("⚠️  No data available.\n");
+        return;
+    }
+
+    var categories = courses
+        .Select(c => c.Category)
+        .Distinct()
+        .OrderBy(cat => cat)
+        .ToList();
+
+    Console.WriteLine("🏷️  ALL COURSE CATEGORIES:");
+    foreach (var category in categories)
+        Console.WriteLine($"- {category}");
+
+    var allEnrolledCourseIds = students
+        .SelectMany(s => s.EnrolledCourseIds)
+        .Distinct()
+        .ToList();
+
+    Console.WriteLine($"\n✅ Total unique courses with enrollments: {allEnrolledCourseIds.Count}\n");
+}
+
+// ─── File Persistence Functions ───────────────────────────────────────────────
+string projectFolder = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\"));
+string dataFolder = Path.Combine(projectFolder, "Data");
+void SaveStudents()
+{
+    try
+    {
+        string filePath = Path.Combine(dataFolder, "students.json");
+        string json = JsonSerializer.Serialize(students, new JsonSerializerOptions { WriteIndented = true });
+        System.IO.File.WriteAllText(filePath, json);
+        Console.WriteLine($"✅ Saved {students.Count} students to {filePath}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error saving students: {ex.Message}");
+    }
+}
+
+void SaveCourses()
+{
+    try
+    {
+        string filePath = Path.Combine(dataFolder, "courses.json");
+        string json = JsonSerializer.Serialize(courses, new JsonSerializerOptions { WriteIndented = true });
+        System.IO.File.WriteAllText(filePath, json);
+        Console.WriteLine($"✅ Saved {courses.Count} courses to {filePath}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error saving courses: {ex.Message}");
+    }
+}
+
+void SaveAllData()
+{
+    Directory.CreateDirectory("Data");
+    Console.WriteLine("💾 Saving all data...");
+    SaveStudents();
+    SaveCourses();
+    Console.WriteLine("✅ All data saved!\n");
+}
+
+void LoadStudents()
+{
+    try
+    {
+        string filePath = Path.Combine(dataFolder, "students.json");
+
+        if (!System.IO.File.Exists(filePath))
+        {
+            Console.WriteLine("ℹ️  No students file found. Starting with default data.");
+            return;
+        }
+
+        string json = System.IO.File.ReadAllText(filePath);
+        var loaded = JsonSerializer.Deserialize<List<Student>>(json)!;
+
+        if (loaded.Count == 0)
+        {
+            Console.WriteLine("ℹ️  Students file is empty. Starting with default data.");
+            students = Student.GetAllStudents();
+            return;
+        }
+
+        students = loaded;
+        Console.WriteLine($"✅ Loaded {students.Count} students from {filePath}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error loading students: {ex.Message}");
+        students = Student.GetAllStudents();
+    }
+}
+
+void LoadCourses()
+{
+    try
+    {
+        string filePath = Path.Combine(dataFolder, "courses.json");
+
+        if (!System.IO.File.Exists(filePath))
+        {
+            Console.WriteLine("ℹ️  No courses file found. Starting with default data.");
+            return;
+        }
+
+        string json = System.IO.File.ReadAllText(filePath);
+        var loaded = JsonSerializer.Deserialize<List<Course>>(json)!;
+
+        if (loaded.Count == 0)
+        {
+            Console.WriteLine("ℹ️  Courses file is empty. Starting with default data.");
+            courses = Course.GetAllCourses();
+            return;
+        }
+
+        courses = loaded;
+        Console.WriteLine($"✅ Loaded {courses.Count} courses from {filePath}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error loading courses: {ex.Message}");
+        courses = Course.GetAllCourses();
+    }
+}
+
+void LoadAllData()
+{
+    Console.WriteLine("📂 Loading saved data...\n");
+    LoadStudents();
+    LoadCourses();
+    Console.WriteLine("\n✅ All data loaded!\n");
+}
+
+// ─── Main Flow ────────────────────────────────────────────────────────────────
+
+LoadAllData();
+
+Demo_GroupBy();
+Demo_Aggregates();
+Demo_Pagination();
+Demo_DistinctAndSelectMany();
+
+SaveAllData();

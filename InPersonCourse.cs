@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.Json.Serialization;
 
 namespace Week_1
 {
@@ -22,7 +23,12 @@ namespace Week_1
         public string RoomNumber { get; set; }
         public string Building { get; set; }
 
-        public InPersonCourse(int id, string title, string description, string instructorName, string category, int maxStudents, string roomNumber, string building)
+        // ── Parameterless constructor for JSON ──
+        public InPersonCourse() : base() { }
+
+        public InPersonCourse(int id, string title, string description,
+                              string instructorName, string category,
+                              int maxStudents, string roomNumber, string building)
             : base(id, title, description, instructorName, category)
         {
             _maxStudents = maxStudents;
@@ -31,9 +37,7 @@ namespace Week_1
         }
 
         public override bool CanEnroll(Student student) => CurrentEnrollments < MaxStudents;
-
         public override int GetAvailableSeats() => MaxStudents - CurrentEnrollments;
-
         public override string GetCourseType() => "In-Person";
 
         public override void DisplayCourseInfo()

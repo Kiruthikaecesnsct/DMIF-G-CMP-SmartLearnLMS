@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace Week_1
 {
@@ -6,54 +8,34 @@ namespace Week_1
     {
         public string Username { get; set; }
 
-        private string _email;
-        public string Email
-        {
-            get => _email;
-            set
-            {
-                if (string.IsNullOrWhiteSpace(value) || !value.Contains("@"))
-                {
-                    Console.WriteLine("  ✗ Invalid email - must contain @");
-                    return;
-                }
-                _email = value;
-            }
-        }
+        // Store as plain property so JSON can serialize it
+        public string Email { get; set; }
 
-        private string _password;
-        public string Password
-        {
-            get => _password;
-            private set
-            {
-                if (value.Length < 8)
-                {
-                    Console.WriteLine("  ✗ Password must be at least 8 characters");
-                    return;
-                }
-                if (!value.Any(char.IsDigit))
-                {
-                    Console.WriteLine("  ✗ Password must contain at least 1 number");
-                    return;
-                }
-                _password = value;
-            }
-        }
+        // Password stored as plain property for JSON (validated on registration)
+        public string Password { get; set; }
 
-        public DateTime DateRegistered { get; private set; }
+        public DateTime DateRegistered { get; set; }
         public bool IsActive { get; set; }
 
-        protected User(string username, string password, string email)
+        // ── Parameterless constructor for JSON ──
+        protected User()
         {
-            Username = username;
-            _password = password;   // direct set to bypass validation for seeded data
-            _email = email;
             DateRegistered = DateTime.Now;
             IsActive = true;
         }
 
-        public bool ValidatePassword(string inputPassword) => _password == inputPassword;
+        protected User(string username, string password, string email)
+        {
+            Username = username;
+            Password = password;
+            Email = email;
+            DateRegistered = DateTime.Now;
+            IsActive = true;
+        }
+
+        public string GetPasswordForSave() => Password;
+
+        public bool ValidatePassword(string inputPassword) => Password == inputPassword;
 
         public virtual void DisplayInfo()
         {

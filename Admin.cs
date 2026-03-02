@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Week_1
 {
@@ -9,6 +9,14 @@ namespace Week_1
         public bool CanManageCourses { get; set; }
         public string AdminLevel { get; set; }
 
+        // ── Parameterless constructor for JSON ──
+        public Admin() : base()
+        {
+            CanManageUsers = true;
+            CanManageCourses = true;
+            AdminLevel = "Super";
+        }
+
         public Admin(string username, string password, string email)
             : base(username, password, email)
         {
@@ -17,13 +25,6 @@ namespace Week_1
             AdminLevel = "Super";
         }
 
-        public void DisplayPermissions()
-        {
-            Console.WriteLine($"  Manage Users  : {(CanManageUsers ? "✓" : "✗")}");
-            Console.WriteLine($"  Manage Courses: {(CanManageCourses ? "✓" : "✗")}");
-        }
-
-        // ── Abstract overrides ──
         public override void DisplayDashboard()
         {
             Console.WriteLine("╔════════════════════════════════╗");
@@ -46,7 +47,8 @@ namespace Week_1
             base.DisplayInfo();
             Console.WriteLine($"  Role        : Admin");
             Console.WriteLine($"  Admin Level : {AdminLevel}");
-            DisplayPermissions();
+            Console.WriteLine($"  Manage Users  : {(CanManageUsers ? "✓" : "✗")}");
+            Console.WriteLine($"  Manage Courses: {(CanManageCourses ? "✓" : "✗")}");
         }
     }
 }

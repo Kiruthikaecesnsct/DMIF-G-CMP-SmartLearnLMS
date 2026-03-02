@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Week_1
 {
@@ -7,7 +8,17 @@ namespace Week_1
     {
         public List<int> CourseIds { get; set; }
         public string Department { get; set; }
+
+        [JsonIgnore]
         private List<string> _notifications;
+
+        // ── Parameterless constructor for JSON ──
+        public Instructor() : base()
+        {
+            CourseIds = new List<int>();
+            Department = "Computer Science";
+            _notifications = new List<string>();
+        }
 
         public Instructor(string username, string password, string email)
             : base(username, password, email)
@@ -28,20 +39,6 @@ namespace Week_1
                 Console.WriteLine("  Course already in your list.");
         }
 
-        public void RemoveCourse(int courseId)
-        {
-            if (CourseIds.Remove(courseId))
-                Console.WriteLine($"  ✓ Course ID {courseId} removed.");
-            else
-                Console.WriteLine("  Course not found in your list.");
-        }
-
-        public void ShowMyCourses()
-        {
-            Console.WriteLine($"  {Username}'s Course IDs: {string.Join(", ", CourseIds)}");
-        }
-
-        // ── Abstract overrides ──
         public override void DisplayDashboard()
         {
             Console.WriteLine("╔════════════════════════════════╗");
@@ -69,14 +66,17 @@ namespace Week_1
             Console.WriteLine($"  Teaching   : {CourseIds.Count} course(s)");
         }
 
-        // ── INotifiable ──
         public void SendNotification(string message)
         {
-            string entry = $"[{DateTime.Now:g}] {message}";
-            _notifications.Add(entry);
+            if (_notifications == null) _notifications = new List<string>();
+            _notifications.Add($"[{DateTime.Now:g}] {message}");
             Console.WriteLine($"  🔔 {message}");
         }
 
-        public List<string> GetNotificationHistory() => new List<string>(_notifications);
+        public List<string> GetNotificationHistory()
+        {
+            if (_notifications == null) _notifications = new List<string>();
+            return new List<string>(_notifications);
+        }
     }
 }

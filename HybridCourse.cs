@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Week_1
 {
@@ -25,7 +26,16 @@ namespace Week_1
         public string Building { get; set; }
         public List<DateTime> InPersonSessions { get; set; }
 
-        public HybridCourse(int id, string title, string description, string instructorName, string category, int maxStudents, int onlineVideoDuration, string roomNumber, string building)
+        // ── Parameterless constructor for JSON ──
+        public HybridCourse() : base()
+        {
+            InPersonSessions = new List<DateTime>();
+        }
+
+        public HybridCourse(int id, string title, string description,
+                            string instructorName, string category,
+                            int maxStudents, int onlineVideoDuration,
+                            string roomNumber, string building)
             : base(id, title, description, instructorName, category)
         {
             _maxStudents = maxStudents;
@@ -36,9 +46,7 @@ namespace Week_1
         }
 
         public override bool CanEnroll(Student student) => CurrentEnrollments < MaxStudents;
-
         public override int GetAvailableSeats() => MaxStudents - CurrentEnrollments;
-
         public override string GetCourseType() => "Hybrid";
 
         public override void DisplayCourseInfo()

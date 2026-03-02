@@ -9,8 +9,22 @@ namespace SmartLearnLMS
         public string StudentUsername { get; set; }
         public int CourseId { get; set; }
         public DateTime EnrollmentDate { get; set; }
-        public int ProgressPercentage { get; set; }
         public bool IsCompleted { get; set; }
+
+        private int _progressPercentage;
+        public int ProgressPercentage
+        {
+            get => _progressPercentage;
+            set
+            {
+                if (value < 0 || value > 100)
+                {
+                    Console.WriteLine("  Progress must be between 0 and 100");
+                    return;
+                }
+                _progressPercentage = value;
+            }
+        }
 
         public Enrollment(int id, string studentUsername, int courseId,
                           DateTime enrollmentDate, int progress, bool isCompleted)
@@ -19,7 +33,7 @@ namespace SmartLearnLMS
             StudentUsername = studentUsername;
             CourseId = courseId;
             EnrollmentDate = enrollmentDate;
-            ProgressPercentage = progress;
+            _progressPercentage = progress;
             IsCompleted = isCompleted;
         }
 
@@ -37,7 +51,7 @@ namespace SmartLearnLMS
         public void MarkComplete()
         {
             IsCompleted = true;
-            ProgressPercentage = 100;
+            _progressPercentage = 100;
             Console.WriteLine("  Enrollment marked as complete!");
         }
 

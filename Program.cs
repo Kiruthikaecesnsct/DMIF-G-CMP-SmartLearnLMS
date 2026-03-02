@@ -12,24 +12,79 @@ namespace SmartLearnLMS
         static List<Enrollment> enrollments = new List<Enrollment>();
         static User currentUser = null;
 
-        static void Main(string[] args)
-        {
-            // Seed courses
-            courseList.Add(new Course(1, "C# Basics", "Learn C#", "Prof Bob", 30, 0));
-            courseList.Add(new Course(2, "SQL Server", "Databases", "Prof Sara", 25, 5));
-            courseList.Add(new Course(3, "ASP.NET Core", "Web Dev", "Prof John", 20, 10));
-            courseList.Add(new Course(4, "Advanced C#", "Deep C#", "Prof Bob", 15, 0));
-            courseList.Add(new Course(5, "Entity Framework", "EF Core ORM", "Prof Sara", 20, 3));
+      
+            static void Main(string[] args)
+            {
+                Console.WriteLine("=== SmartLearn LMS - Week 3 Demo ===\n");
 
-            bool running = true;
-            while (running)
-                running = ShowMainMenu();
+                // 1. Polymorphic dashboard - no if-else needed!
+                Console.WriteLine("-- 1. POLYMORPHIC DASHBOARDS --");
+                List<User> users = new List<User>
+            {
+                new Student   ("alice",   "password1", "alice@email.com"),
+                new Instructor("bob",     "password2", "bob@email.com"),
+                new Admin     ("charlie", "password3", "charlie@email.com")
+            };
+                foreach (User user in users)
+                    user.DisplayDashboard(); // Works for ALL types - no if-else!
+
+                // 2. Abstract Course hierarchy
+                Console.WriteLine("\n-- 2. COURSE TYPES --");
+                List<Course> courses = new List<Course>
+            {
+                new VideoCourse(1, "C# Basics",     "Learn C#",        "bob", 30, 180, "https://stream.example.com"),
+                new LiveCourse (2, "Advanced OOP",  "OOP deep dive",   "bob", 20, DateTime.Now.AddDays(7), "https://meet.example.com"),
+                new TextCourse (3, "Design Patterns","GoF patterns",   "bob", 50, 320)
+            };
+                foreach (Course c in courses)
+                    c.DisplayCourseInfo();
+
+                // 3. Enroll student
+                Console.WriteLine("\n-- 3. ENROLLMENT --");
+                Student alice = (Student)users[0];
+                courses[0].Enroll(alice);
+                courses[1].Enroll(alice);
+
+                // 4. Ratings
+                Console.WriteLine("\n-- 4. RATINGS --");
+                courses[0].AddRating(5, "Excellent!");
+                courses[0].AddRating(4, "Very helpful.");
+                Console.WriteLine($"  Average: {courses[0].GetAverageRating():F1} stars");
+
+                // 5. Universal search - works across Courses AND Students!
+                Console.WriteLine("\n-- 5. UNIVERSAL SEARCH (keyword: 'OOP') --");
+                List<ISearchable> searchable = new List<ISearchable>();
+                searchable.AddRange(courses);
+                searchable.Add(alice);
+                foreach (ISearchable item in searchable)
+                    if (item.MatchesSearch("OOP"))
+                        Console.WriteLine("  Found: " + item.GetSearchSummary());
+
+                // 6. Reports
+                Console.WriteLine("\n-- 6. REPORTS --");
+                foreach (User u in users)
+                    u.DisplayReport();
+
+                // 7. Validation
+                Console.WriteLine("\n-- 7. VALIDATION --");
+                Student bad = new Student("dave", "pass", "bad");  // short password
+                bad.Email = "noemail";      // missing @ -> rejected
+                bad.Email = "dave@ok.com";  // valid -> accepted
+
+                // 8. Notifications auto-sent on enrollment
+                Console.WriteLine("\n-- 8. ALICE'S NOTIFICATIONS --");
+                foreach (string n in alice.GetNotificationHistory())
+                    Console.WriteLine("  " + n);
+
+                Console.WriteLine("\n=== Demo Complete ===");
+            }
         }
+    }
 
-        // ══════════════════════════════════════════════════════
-        //  MAIN MENU
-        // ══════════════════════════════════════════════════════
-        static bool ShowMainMenu()
+    // ══════════════════════════════════════════════════════
+    //  MAIN MENU
+    // ══════════════════════════════════════════════════════
+    static bool ShowMainMenu()
         {
             Console.Clear();
             Console.WriteLine("================================");

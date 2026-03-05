@@ -3,17 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Week_1.Interfaces;
 
 namespace Week_1
 {
-    public class Student : User, ISearchable
-    {
+    public class Student : User, ISearchable, INotifiable, IReportable
+        {
         // ❌ REMOVED duplicate Username — it already exists in User base class
         // public string Username { get; set; }
 
         public List<int> EnrolledCourseIds { get; set; }
         public Dictionary<int, int> CourseProgress { get; set; }
         public double ProgressPercentage { get; set; }
+
+
+        // New fields — add near the top with your other fields
+        private List<string> notifications = new List<string>();
+        private int unreadCount = 0;
+
+        // INotifiable
+        public int UnreadNotificationCount => unreadCount;
+
 
         // ✅ Parameterless constructor — required for JSON Deserialize
         public Student() : base()
@@ -106,5 +116,29 @@ namespace Week_1
         }
 
         public string GetSearchSummary() => $"{Username} ({Email})";
-    }
+
+        // INotifiable
+        public void SendNotification(string message)
+            {
+            string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+            notifications.Add($"[{timestamp}] {message}");
+            unreadCount++;
+            Console.WriteLine($"🔔 Notification for {Username}: {message}");
+            }
+
+        public List<string> GetNotificationHistory()
+            {
+            unreadCount = 0;
+            return notifications;
+            }
+
+        // IReportable
+        public string GenerateReport()
+            {
+            return $"=== Student Report: {Username} ===\n" +
+                   $"Progress: {ProgressPercentage}%\n" +
+                   $"Courses Enrolled: {EnrolledCourseIds.Count}\n" +
+                   $"Unread Notifications: {UnreadNotificationCount}";
+            }
+        }
 }

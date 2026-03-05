@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Week_1.Interfaces;
 
 namespace Week_1
 {
-    public class Enrollment
-    {
+    public class Enrollment : IReportable
+        {
         // Properties
         public int EnrollmentId { get; set; }
         public string StudentUsername { get; set; }
@@ -54,5 +55,12 @@ namespace Week_1
             Console.WriteLine($"Progress: {ProgressPercentage}%");
             Console.WriteLine($"Status: {(IsCompleted ? "Completed" : "In Progress")}");
         }
-    }
+        // IReportable
+        public string GenerateReport()
+            {
+            return $"Enrollment #{EnrollmentId} | Student: {StudentUsername} | " +
+                   $"Course: {CourseId} | Progress: {ProgressPercentage}% | " +
+                   $"Status: {(IsCompleted ? "Completed ✅" : "In Progress")}";
+            }
+        }
 }

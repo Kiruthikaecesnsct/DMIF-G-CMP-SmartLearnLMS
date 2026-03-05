@@ -7,7 +7,8 @@
     "Description": null,
     "Category": "Programming",
     "Difficulty": "Beginner",
-    "CurrentEnrollments": 120
+    "CurrentEnrollments": 120,
+    "AverageRating": 0
   },
   {
     "MaxStudents": 0,
@@ -17,7 +18,8 @@
     "Description": null,
     "Category": "Programming",
     "Difficulty": "Advanced",
-    "CurrentEnrollments": 45
+    "CurrentEnrollments": 45,
+    "AverageRating": 0
   },
   {
     "MaxStudents": 0,
@@ -27,7 +29,8 @@
     "Description": null,
     "Category": "Design",
     "Difficulty": "Beginner",
-    "CurrentEnrollments": 98
+    "CurrentEnrollments": 98,
+    "AverageRating": 0
   },
   {
     "MaxStudents": 0,
@@ -37,7 +40,8 @@
     "Description": null,
     "Category": "Design",
     "Difficulty": "Intermediate",
-    "CurrentEnrollments": 60
+    "CurrentEnrollments": 60,
+    "AverageRating": 0
   },
   {
     "MaxStudents": 0,
@@ -47,7 +51,8 @@
     "Description": null,
     "Category": "Data",
     "Difficulty": "Intermediate",
-    "CurrentEnrollments": 75
+    "CurrentEnrollments": 75,
+    "AverageRating": 0
   },
   {
     "MaxStudents": 0,
@@ -57,6 +62,7 @@
     "Description": null,
     "Category": "Data",
     "Difficulty": "Advanced",
-    "CurrentEnrollments": 30
+    "CurrentEnrollments": 30,
+    "AverageRating": 0
   }
 ]

@@ -9,8 +9,9 @@ namespace Week_1
     [JsonDerivedType(typeof(OnlineCourse), "Online")]
     [JsonDerivedType(typeof(InPersonCourse), "InPerson")]
     [JsonDerivedType(typeof(HybridCourse), "Hybrid")]
-    public abstract class Course : IEnrollable, ISearchable, IRatable
-    {
+
+    public abstract class Course : IEnrollable, ISearchable, IRatable, IAuditable, IReportable
+        {
         public int CourseId { get; set; }
 
         private string _title;
@@ -36,16 +37,22 @@ namespace Week_1
         private List<int> _ratings = new List<int>();
         private List<string> _reviews = new List<string>();
 
+
+        public DateTime CreatedDate { get; set; }
+        public DateTime ModifiedDate { get; set; }
+        public void UpdateModifiedDate() => ModifiedDate = DateTime.Now;
+
         // ── Parameterless constructor for JSON ──
         protected Course()
-        {
+            {
             _ratings = new List<int>();
             _reviews = new List<string>();
-        }
-
+            CreatedDate = DateTime.Now;
+            ModifiedDate = DateTime.Now;
+            }
         protected Course(int id, string title, string description,
-                         string instructorName, string category)
-        {
+                  string instructorName, string category)
+            {
             CourseId = id;
             _title = title;
             Description = description;
@@ -54,7 +61,9 @@ namespace Week_1
             CurrentEnrollments = 0;
             _ratings = new List<int>();
             _reviews = new List<string>();
-        }
+            CreatedDate = DateTime.Now;
+            ModifiedDate = DateTime.Now;
+            }
 
         // ── Static sample data factory ──
         public static List<Course> GetAllCourses()
@@ -156,5 +165,27 @@ namespace Week_1
             if (_ratings == null) return 0;
             return _ratings.Count;
         }
-    }
+
+     
+        // ── IReportable ──
+        public string GenerateReport()
+            {
+            return $"""
+                ════════════════════════════════════
+                COURSE REPORT: {Title}
+                ════════════════════════════════════
+                ID             : {CourseId}
+                Type           : {GetCourseType()}
+                Instructor     : {InstructorName}
+                Category       : {Category}
+                Enrollments    : {CurrentEnrollments}
+                Avg Rating     : {GetAverageRating():F1} ({GetTotalRatings()} ratings)
+                Available Seats: {GetAvailableSeats()}
+                Created        : {CreatedDate:d}
+                ════════════════════════════════════
+                """;
+            }
+
+        public void DisplayReport() => Console.WriteLine(GenerateReport());
+        }
 }

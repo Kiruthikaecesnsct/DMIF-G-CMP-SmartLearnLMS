@@ -8,7 +8,9 @@
     "Description": "Learn C# from scratch",
     "InstructorName": "Prof. Smith",
     "Category": "Programming",
-    "CurrentEnrollments": 0
+    "CurrentEnrollments": 1,
+    "CreatedDate": "2026-03-06T15:14:48.6640148+05:30",
+    "ModifiedDate": "2026-03-06T15:14:48.6640413+05:30"
   },
   {
     "CourseType": "Online",
@@ -19,7 +21,9 @@
     "Description": "Intro to Python programming",
     "InstructorName": "Prof. Johnson",
     "Category": "Programming",
-    "CurrentEnrollments": 0
+    "CurrentEnrollments": 0,
+    "CreatedDate": "2026-03-06T15:14:48.665332+05:30",
+    "ModifiedDate": "2026-03-06T15:14:48.6653323+05:30"
   },
   {
     "CourseType": "Online",
@@ -30,7 +34,9 @@
     "Description": "HTML, CSS and JS fundamentals",
     "InstructorName": "Prof. Garcia",
     "Category": "Web Development",
-    "CurrentEnrollments": 0
+    "CurrentEnrollments": 0,
+    "CreatedDate": "2026-03-06T15:14:48.665334+05:30",
+    "ModifiedDate": "2026-03-06T15:14:48.6653341+05:30"
   },
   {
     "CourseType": "Online",
@@ -41,7 +47,9 @@
     "Description": "Arrays, Lists, Trees and more",
     "InstructorName": "Prof. Smith",
     "Category": "Computer Science",
-    "CurrentEnrollments": 0
+    "CurrentEnrollments": 0,
+    "CreatedDate": "2026-03-06T15:14:48.6653413+05:30",
+    "ModifiedDate": "2026-03-06T15:14:48.6653413+05:30"
   },
   {
     "CourseType": "Online",
@@ -52,7 +60,9 @@
     "Description": "Basics of ML and AI concepts",
     "InstructorName": "Prof. Lee",
     "Category": "Data Science",
-    "CurrentEnrollments": 0
+    "CurrentEnrollments": 0,
+    "CreatedDate": "2026-03-06T15:14:48.6653415+05:30",
+    "ModifiedDate": "2026-03-06T15:14:48.6653416+05:30"
   },
   {
     "CourseType": "InPerson",
@@ -64,7 +74,9 @@
     "Description": "Relational DB and SQL",
     "InstructorName": "Prof. Johnson",
     "Category": "Database",
-    "CurrentEnrollments": 0
+    "CurrentEnrollments": 0,
+    "CreatedDate": "2026-03-06T15:14:48.6654033+05:30",
+    "ModifiedDate": "2026-03-06T15:14:48.6654035+05:30"
   },
   {
     "CourseType": "InPerson",
@@ -76,7 +88,9 @@
     "Description": "Practical cybersecurity skills",
     "InstructorName": "Prof. Brown",
     "Category": "Security",
-    "CurrentEnrollments": 0
+    "CurrentEnrollments": 0,
+    "CreatedDate": "2026-03-06T15:14:48.6654627+05:30",
+    "ModifiedDate": "2026-03-06T15:14:48.6654629+05:30"
   },
   {
     "CourseType": "InPerson",
@@ -88,7 +102,9 @@
     "Description": "Build iOS and Android apps",
     "InstructorName": "Prof. Garcia",
     "Category": "Mobile",
-    "CurrentEnrollments": 0
+    "CurrentEnrollments": 0,
+    "CreatedDate": "2026-03-06T15:14:48.6654632+05:30",
+    "ModifiedDate": "2026-03-06T15:14:48.6654632+05:30"
   },
   {
     "CourseType": "Hybrid",
@@ -102,7 +118,9 @@
     "Description": "Frontend \u002B Backend full stack",
     "InstructorName": "Prof. Garcia",
     "Category": "Web Development",
-    "CurrentEnrollments": 0
+    "CurrentEnrollments": 0,
+    "CreatedDate": "2026-03-06T15:14:48.6657445+05:30",
+    "ModifiedDate": "2026-03-06T15:14:48.6657448+05:30"
   },
   {
     "CourseType": "Hybrid",
@@ -116,6 +134,8 @@
     "Description": "AWS, Azure and cloud concepts",
     "InstructorName": "Prof. Lee",
     "Category": "Cloud",
-    "CurrentEnrollments": 0
+    "CurrentEnrollments": 0,
+    "CreatedDate": "2026-03-06T15:14:48.6659376+05:30",
+    "ModifiedDate": "2026-03-06T15:14:48.6659379+05:30"
   }
 ]

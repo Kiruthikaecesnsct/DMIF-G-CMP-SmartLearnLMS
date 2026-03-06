@@ -1,13 +1,19 @@
 [
   {
-    "EnrolledCourseIds": [],
-    "CourseProgress": {},
+    "EnrolledCourseIds": [
+      101
+    ],
+    "CourseProgress": {
+      "101": 0
+    },
     "ProgressPercentage": 85,
     "Username": "alice",
     "Email": "alice@email.com",
     "Password": "password1",
-    "DateRegistered": "2026-03-02T22:03:48.3125354+05:30",
-    "IsActive": true
+    "DateRegistered": "2026-03-06T15:14:48.6499585+05:30",
+    "IsActive": true,
+    "CreatedDate": "2026-03-06T15:14:48.661206+05:30",
+    "ModifiedDate": "2026-03-06T15:14:48.6860477+05:30"
   },
   {
     "EnrolledCourseIds": [],
@@ -16,8 +22,10 @@
     "Username": "bob",
     "Email": "bob@email.com",
     "Password": "password2",
-    "DateRegistered": "2026-03-02T22:03:48.3167329+05:30",
-    "IsActive": true
+    "DateRegistered": "2026-03-06T15:14:48.6624665+05:30",
+    "IsActive": true,
+    "CreatedDate": "2026-03-06T15:14:48.662467+05:30",
+    "ModifiedDate": "2026-03-06T15:14:48.6624671+05:30"
   },
   {
     "EnrolledCourseIds": [],
@@ -26,8 +34,10 @@
     "Username": "charlie",
     "Email": "charlie@email.com",
     "Password": "password3",
-    "DateRegistered": "2026-03-02T22:03:48.3167363+05:30",
-    "IsActive": true
+    "DateRegistered": "2026-03-06T15:14:48.6624685+05:30",
+    "IsActive": true,
+    "CreatedDate": "2026-03-06T15:14:48.6624686+05:30",
+    "ModifiedDate": "2026-03-06T15:14:48.6624686+05:30"
   },
   {
     "EnrolledCourseIds": [],
@@ -36,8 +46,10 @@
     "Username": "diana",
     "Email": "diana@email.com",
     "Password": "password4",
-    "DateRegistered": "2026-03-02T22:03:48.3167366+05:30",
-    "IsActive": true
+    "DateRegistered": "2026-03-06T15:14:48.6624688+05:30",
+    "IsActive": true,
+    "CreatedDate": "2026-03-06T15:14:48.6624688+05:30",
+    "ModifiedDate": "2026-03-06T15:14:48.6624689+05:30"
   },
   {
     "EnrolledCourseIds": [],
@@ -46,7 +58,9 @@
     "Username": "eve",
     "Email": "eve@email.com",
     "Password": "password5",
-    "DateRegistered": "2026-03-02T22:03:48.3167368+05:30",
-    "IsActive": true
+    "DateRegistered": "2026-03-06T15:14:48.662469+05:30",
+    "IsActive": true,
+    "CreatedDate": "2026-03-06T15:14:48.6624691+05:30",
+    "ModifiedDate": "2026-03-06T15:14:48.6624691+05:30"
   }
 ]

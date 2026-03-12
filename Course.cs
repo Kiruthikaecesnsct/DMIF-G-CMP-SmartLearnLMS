@@ -4,34 +4,63 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Week_1.Interfaces;
-
-
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Week_1
-{
+    {
     public class Course : IEnrollable, IRatable, ISearchable
         {
-        // All your existing properties — unchanged
-        public int MaxStudents { get; set; }
-        public int Id { get; set; }
-        public List<string> EnrolledStudentUsernames { get; set; }
-        public string Title { get; set; }
-        public string Description { get; set; }
-        public string Category { get; set; }
-        public string Difficulty { get; set; }
-        public int CurrentEnrollments { get; set; }
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int CourseId { get; set; }
 
-        // New fields for IRatable
-        public double AverageRating { get; private set; }
+        // Keeps old Id property working for existing in-memory code
+        [NotMapped]
+        public int Id
+            {
+            get => CourseId;
+            set => CourseId = value;
+            }
+
+        public int MaxStudents { get; set; }
+
+        [Required]
+        [MaxLength(100)]
+        public string Title { get; set; }
+
+        [MaxLength(500)]
+        public string? Description { get; set; }
+
+        public string? Category { get; set; }
+        public string? Difficulty { get; set; }
+        public int CurrentEnrollments { get; set; }
+        public double AverageRating { get; set; }
+
+        // Foreign key — links course to instructor
+        public int InstructorId { get; set; }
+
+        // [NotMapped] — cannot store List<string> as a DB column
+        [NotMapped]
+        public List<string> EnrolledStudentUsernames { get; set; }
+
+        // [NotMapped] — tuple list cannot be stored in DB
+        [NotMapped]
         private List<(int rating, string review)> reviews = new List<(int, string)>();
+
+        // Instructor navigation — still [NotMapped] for now
+        // (no Instructors seeded with matching key yet)
+        [NotMapped]
+        public Instructor Instructor { get; set; }
+
+        // ✅ [NotMapped] REMOVED — EF Core needs this for .Include(c => c.Enrollments)
+        public List<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
 
         public Course()
             {
             EnrolledStudentUsernames = new List<string>();
             }
 
-        // Your existing GetAllCourses — only change is adding Description values
-        // so MatchesSearch doesn't crash on null
         public static List<Course> GetAllCourses()
             {
             return new List<Course>
@@ -45,7 +74,6 @@ namespace Week_1
             };
             }
 
-        // Your existing enrollment methods — unchanged
         public void Enroll(Student student)
             {
             if (!CanEnroll(student))
@@ -73,7 +101,6 @@ namespace Week_1
             return MaxStudents - EnrolledStudentUsernames.Count;
             }
 
-        // Your existing ISearchable — fixed null crash on Description
         public bool MatchesSearch(string keyword)
             {
             string desc = Description ?? "";
@@ -86,7 +113,6 @@ namespace Week_1
             return $"{Title} - {Description}";
             }
 
-        // NEW — IRatable implementation
         public void AddRating(int rating, string review)
             {
             if (rating < 1 || rating > 5)
@@ -102,5 +128,4 @@ namespace Week_1
             return reviews;
             }
         }
-
     }

@@ -277,9 +277,9 @@ namespace Week_1.Services
                     foreach (var enrollment in student.Enrollments)
                         {
                         Console.WriteLine($"📖 {enrollment.Course?.Title ?? "Unknown Course"}");
-                        Console.WriteLine($"   Progress: {enrollment.ProgressPercentage}%");
+                        Console.WriteLine($"   Progress: {enrollment.ProgressPercent}%");
                         Console.WriteLine($"   Status: {enrollment.Status}");
-                        Console.WriteLine($"   Enrolled On: {enrollment.EnrollmentDate.ToShortDateString()}");
+                        Console.WriteLine($"   Enrolled On: {enrollment.EnrolledDate.ToShortDateString()}");
                         }
                     Console.WriteLine("─────────────────────────────────");
                     }
@@ -287,6 +287,57 @@ namespace Week_1.Services
                     {
                     Console.WriteLine("❌ Student not found.");
                     }
+                }
+            }
+        
+    // Add this method to the existing StudentService class
+        public void StudentDashboard(int studentId)
+            {
+            using (var db = new SmartLearnDbContext())
+                {
+                var student = db.Students
+                    .Include(s => s.Enrollments)
+                    .ThenInclude(e => e.Course)
+                    .ThenInclude(c => c.Instructor)
+                    .FirstOrDefault(s => s.StudentId == studentId);
+
+                if (student == null) return;
+
+                Console.WriteLine("\n╔════════════════════════════════════╗");
+                Console.WriteLine($"║  {student.Username}'s Dashboard");
+                Console.WriteLine("╚════════════════════════════════════╝\n");
+
+                Console.WriteLine($"📊 Overall Progress: {student.ProgressPercentage}%");
+                Console.WriteLine($"📚 Enrolled Courses: {student.Enrollments.Count}");
+                Console.WriteLine($"🕒 Last Login: {student.LastLoginDate:yyyy-MM-dd HH:mm}\n");
+
+                if (student.Enrollments.Any())
+                    {
+                    Console.WriteLine("═══ CURRENT COURSES ═══\n");
+
+                    foreach (var enrollment in student.Enrollments.OrderByDescending(e => e.EnrolledDate))
+                        {
+                        Console.WriteLine($"📖 {enrollment.Course.Title}");
+                        Console.WriteLine($"   👨‍🏫 Instructor: {enrollment.Course.Instructor?.Username ?? "TBA"}");
+                        Console.WriteLine($"   📊 Progress: {enrollment.ProgressPercent}%");
+                        Console.WriteLine($"   🎯 Status: {enrollment.Status}");
+
+                        int barLength = (int)(enrollment.ProgressPercent / 5);
+                        string bar = new string('█', barLength) + new string('░', 20 - barLength);
+                        Console.WriteLine($"   [{bar}] {enrollment.ProgressPercent}%\n");
+                        }
+
+                    var activeCount = student.Enrollments.Count(e => e.Status == "Active");
+                    var completedCount = student.Enrollments.Count(e => e.Status == "Completed");
+                    var avgProgress = student.Enrollments.Average(e => e.ProgressPercent);
+
+                    Console.WriteLine("═══ SUMMARY ═══");
+                    Console.WriteLine($"✅ Completed: {completedCount}");
+                    Console.WriteLine($"📚 In Progress: {activeCount}");
+                    Console.WriteLine($"📊 Average Progress: {avgProgress:F1}%");
+                    }
+                else
+                    Console.WriteLine("No courses enrolled yet!");
                 }
             }
         }

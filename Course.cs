@@ -15,15 +15,12 @@ namespace Week_1
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int CourseId { get; set; }
 
-        // Keeps old Id property working for existing in-memory code
         [NotMapped]
         public int Id
             {
             get => CourseId;
             set => CourseId = value;
             }
-
-        public int MaxStudents { get; set; }
 
         [Required]
         [MaxLength(100)]
@@ -33,27 +30,36 @@ namespace Week_1
         public string? Description { get; set; }
 
         public string? Category { get; set; }
-        public string? Difficulty { get; set; }
+
+        // renamed from Difficulty to match script queries
+        public string? DifficultyLevel { get; set; }
+
+        // renamed from MaxStudents — keeps old name as alias below
+        public int MaxCapacity { get; set; } = 100;
+
+        // alias so existing code that uses MaxStudents still compiles
+        [NotMapped]
+        public int MaxStudents
+            {
+            get => MaxCapacity;
+            set => MaxCapacity = value;
+            }
+
         public int CurrentEnrollments { get; set; }
         public double AverageRating { get; set; }
 
         // Foreign key — links course to instructor
         public int InstructorId { get; set; }
 
-        // [NotMapped] — cannot store List<string> as a DB column
         [NotMapped]
         public List<string> EnrolledStudentUsernames { get; set; }
 
-        // [NotMapped] — tuple list cannot be stored in DB
         [NotMapped]
         private List<(int rating, string review)> reviews = new List<(int, string)>();
 
-        // Instructor navigation — still [NotMapped] for now
-        // (no Instructors seeded with matching key yet)
-        [NotMapped]
-        public Instructor Instructor { get; set; }
+        // ✅ [NotMapped] REMOVED from Instructor — now a real navigation property
+        public Instructor? Instructor { get; set; }
 
-        // ✅ [NotMapped] REMOVED — EF Core needs this for .Include(c => c.Enrollments)
         public List<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
 
         public Course()
@@ -65,12 +71,12 @@ namespace Week_1
             {
             return new List<Course>
             {
-                new Course { Id = 1, Title = "C# Basics",          Description = "Introduction to C# programming",   Category = "Programming", Difficulty = "Beginner",     CurrentEnrollments = 120, MaxStudents = 200 },
-                new Course { Id = 2, Title = "Advanced LINQ",      Description = "Deep dive into LINQ queries",       Category = "Programming", Difficulty = "Advanced",     CurrentEnrollments = 45,  MaxStudents = 100 },
-                new Course { Id = 3, Title = "Web Design 101",     Description = "HTML and CSS fundamentals",         Category = "Design",      Difficulty = "Beginner",     CurrentEnrollments = 98,  MaxStudents = 150 },
-                new Course { Id = 4, Title = "UI/UX Principles",   Description = "User interface design principles",  Category = "Design",      Difficulty = "Intermediate", CurrentEnrollments = 60,  MaxStudents = 80  },
-                new Course { Id = 5, Title = "Data Science Intro", Description = "Introduction to data science",      Category = "Data",        Difficulty = "Intermediate", CurrentEnrollments = 75,  MaxStudents = 120 },
-                new Course { Id = 6, Title = "Machine Learning",   Description = "ML algorithms and applications",    Category = "Data",        Difficulty = "Advanced",     CurrentEnrollments = 30,  MaxStudents = 60  },
+                new Course { Id = 1, Title = "C# Basics",          Description = "Introduction to C# programming",   Category = "Programming", DifficultyLevel = "Beginner",     CurrentEnrollments = 120, MaxStudents = 200 },
+                new Course { Id = 2, Title = "Advanced LINQ",      Description = "Deep dive into LINQ queries",       Category = "Programming", DifficultyLevel = "Advanced",     CurrentEnrollments = 45,  MaxStudents = 100 },
+                new Course { Id = 3, Title = "Web Design 101",     Description = "HTML and CSS fundamentals",         Category = "Design",      DifficultyLevel = "Beginner",     CurrentEnrollments = 98,  MaxStudents = 150 },
+                new Course { Id = 4, Title = "UI/UX Principles",   Description = "User interface design principles",  Category = "Design",      DifficultyLevel = "Intermediate", CurrentEnrollments = 60,  MaxStudents = 80  },
+                new Course { Id = 5, Title = "Data Science Intro", Description = "Introduction to data science",      Category = "Data",        DifficultyLevel = "Intermediate", CurrentEnrollments = 75,  MaxStudents = 120 },
+                new Course { Id = 6, Title = "Machine Learning",   Description = "ML algorithms and applications",    Category = "Data",        DifficultyLevel = "Advanced",     CurrentEnrollments = 30,  MaxStudents = 60  },
             };
             }
 

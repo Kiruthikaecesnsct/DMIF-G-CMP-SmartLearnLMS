@@ -10,35 +10,31 @@ namespace Week_1
     {
     public class Instructor : User
         {
-        // [Key] = primary key for the Instructors table
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int InstructorId { get; set; }
+        public int? InstructorId { get; set; }
+        [NotMapped]
+        public string? Specialization { get; set; }
+        [NotMapped]
+        public int YearsOfExperience { get; set; }
 
-        // [NotMapped] = EF Core cannot store List<int> as a column
-        // Kept for your existing in-memory logic
         [NotMapped]
         public List<int> CourseIds { get; set; }
 
-        // Navigation property — EF Core uses this to load related Courses
-        // [NotMapped] until migrations are done, then remove this line
-        [NotMapped]
+        // ✅ [NotMapped] REMOVED — EF Core needs this for .Include(i => i.Courses)
         public List<Course> Courses { get; set; } = new List<Course>();
 
-        // Parameterless constructor — required by EF Core
         public Instructor() : base()
             {
             CourseIds = new List<int>();
             }
 
-        // Your existing constructor — unchanged
         public Instructor(string username, string password, string email)
             : base(username, password, email)
             {
             CourseIds = new List<int>();
             }
 
-        // All methods below unchanged
         public override void DisplayDashboard()
             {
             Console.WriteLine("\n=== INSTRUCTOR DASHBOARD ===");
@@ -49,44 +45,29 @@ namespace Week_1
             Console.WriteLine("4. Logout");
             }
 
-        public override string GetUserType()
-            {
-            return "Instructor";
-            }
+        public override string GetUserType() => "Instructor";
 
         public void AddCourse(int courseId)
             {
             if (!CourseIds.Contains(courseId))
-                {
-                CourseIds.Add(courseId);
-                Console.WriteLine("✓ Course added!");
-                }
+                { CourseIds.Add(courseId); Console.WriteLine("✓ Course added!"); }
             else
-                {
                 Console.WriteLine("❌ Course already exists!");
-                }
             }
 
         public void RemoveCourse(int courseId)
             {
             if (CourseIds.Contains(courseId))
-                {
-                CourseIds.Remove(courseId);
-                Console.WriteLine("✓ Course removed!");
-                }
+                { CourseIds.Remove(courseId); Console.WriteLine("✓ Course removed!"); }
             else
-                {
                 Console.WriteLine("❌ Course not found!");
-                }
             }
 
         public void ShowMyCourses()
             {
             Console.WriteLine("My Courses:");
             foreach (int courseId in CourseIds)
-                {
                 Console.WriteLine($"Course ID: {courseId}");
-                }
             }
         }
     }

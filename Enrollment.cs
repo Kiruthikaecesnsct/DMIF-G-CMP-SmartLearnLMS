@@ -15,53 +15,60 @@ namespace Week_1
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int EnrollmentId { get; set; }
 
-        // Made nullable with ? — so EF Core does not require it when saving
-     
-        public string? StudentUsername { get; set; }
 
-        // Foreign keys — EF Core uses these to link Students and Courses tables
         public int StudentId { get; set; }
         public int CourseId { get; set; }
 
-        public DateTime EnrollmentDate { get; set; }
-        public int ProgressPercentage { get; set; }
+        public DateTime EnrolledDate { get; set; }
+
+        public int ProgressPercent { get; set; }
+
+        [NotMapped]
         public bool IsCompleted { get; set; }
+
+        // StudentUsername doesn't exist in DB — mark it NotMapped  
+        [NotMapped]
+        public string? StudentUsername { get; set; }
         public string Status { get; set; } = "Active";
 
-        // ✅ [NotMapped] REMOVED from both — EF Core needs these for .Include().ThenInclude()
-        // These are the real database relationships
+        // NEW — used in analytics queries from Week 7 script
+        public DateTime? CompletionDate { get; set; }
+
         public Student Student { get; set; }
         public Course Course { get; set; }
 
-        // Parameterless constructor — required by EF Core
         public Enrollment() { }
 
-        // Your existing constructor — kept exactly as before
         public Enrollment(int enrollmentId, string studentUsername, int courseId,
                           DateTime enrollmentDate, int progressPercentage, bool isCompleted)
             {
             EnrollmentId = enrollmentId;
             StudentUsername = studentUsername;
             CourseId = courseId;
-            EnrollmentDate = enrollmentDate;
-            ProgressPercentage = progressPercentage;
+            EnrolledDate = enrollmentDate;
+            ProgressPercent = progressPercentage;
             IsCompleted = isCompleted;
             }
 
         public void UpdateProgress(int percentage)
             {
-            ProgressPercentage = percentage;
+            ProgressPercent = percentage;
             if (percentage >= 100)
-                {
                 MarkComplete();
-                }
             }
 
         public void MarkComplete()
             {
             IsCompleted = true;
-            ProgressPercentage = 100;
+            ProgressPercent = 100;
             Status = "Completed";
+            CompletionDate = DateTime.Now;   // NEW
+            }
+
+        // NEW — for EnrollmentService.DropCourse
+        public void Drop()
+            {
+            Status = "Dropped";
             }
 
         public void DisplayInfo()
@@ -69,15 +76,15 @@ namespace Week_1
             Console.WriteLine($"Enrollment ID: {EnrollmentId}");
             Console.WriteLine($"Student: {StudentUsername}");
             Console.WriteLine($"Course ID: {CourseId}");
-            Console.WriteLine($"Enrolled On: {EnrollmentDate.ToShortDateString()}");
-            Console.WriteLine($"Progress: {ProgressPercentage}%");
+            Console.WriteLine($"Enrolled On: {EnrolledDate.ToShortDateString()}");
+            Console.WriteLine($"Progress: {ProgressPercent}%");
             Console.WriteLine($"Status: {(IsCompleted ? "Completed" : "In Progress")}");
             }
 
         public string GenerateReport()
             {
             return $"Enrollment #{EnrollmentId} | Student: {StudentUsername} | " +
-                   $"Course: {CourseId} | Progress: {ProgressPercentage}% | " +
+                   $"Course: {CourseId} | Progress: {ProgressPercent}% | " +
                    $"Status: {(IsCompleted ? "Completed ✅" : "In Progress")}";
             }
         }

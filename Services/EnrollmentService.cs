@@ -75,10 +75,8 @@ namespace Week_1.Services
                         {
                         StudentId = studentId,
                         CourseId = courseId,
-                        StudentUsername = student.Username,
-                        EnrollmentDate = DateTime.Now,
-                        ProgressPercentage = 0,
-                        IsCompleted = false,
+                        EnrolledDate = DateTime.Now,
+                        ProgressPercent = 0,
                         Status = "Active"
                         };
 
@@ -119,6 +117,43 @@ namespace Week_1.Services
                     if (student != null)
                         notificationService.NotifyProgress(student, percentage);
                     }
+                }
+            }
+        
+    // Drop a student from a course
+        public void DropCourse(int studentId, int courseId)
+            {
+            using (var db = new SmartLearnDbContext())
+                {
+                var enrollment = db.Enrollments
+                    .FirstOrDefault(e => e.StudentId == studentId && e.CourseId == courseId);
+
+                if (enrollment == null)
+                    { Console.WriteLine("❌ Enrollment not found!"); return; }
+
+                enrollment.Drop();
+                db.SaveChanges();
+                Console.WriteLine("✅ Course dropped successfully.");
+                }
+            }
+
+        // Mark an enrollment as completed
+        public void MarkAsCompleted(int enrollmentId)
+            {
+            using (var db = new SmartLearnDbContext())
+                {
+                var enrollment = db.Enrollments.Find(enrollmentId);
+                if (enrollment == null)
+                    { Console.WriteLine("❌ Enrollment not found!"); return; }
+
+                enrollment.MarkComplete();
+                db.SaveChanges();
+
+                var student = db.Students.Find(enrollment.StudentId);
+                if (student != null)
+                    notificationService.NotifyProgress(student, 100);
+
+                Console.WriteLine("🎉 Enrollment marked as completed!");
                 }
             }
         }

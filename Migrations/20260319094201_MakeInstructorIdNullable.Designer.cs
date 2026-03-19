@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Week_1.Data;
 
@@ -11,9 +12,11 @@ using Week_1.Data;
 namespace Week_1.Migrations
 {
     [DbContext(typeof(SmartLearnDbContext))]
-    partial class SmartLearnDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260319094201_MakeInstructorIdNullable")]
+    partial class MakeInstructorIdNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

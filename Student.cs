@@ -28,10 +28,16 @@ namespace Week_1
         private int unreadCount = 0;
 
         public int UnreadNotificationCount => unreadCount;
-
-        // ✅ [NotMapped] REMOVED here — EF Core needs this to do .Include(s => s.Enrollments)
-        // This is the real database relationship — EF Core loads enrollments via foreign key
         public List<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
+
+
+        // Add these two properties alongside the existing ones:
+        public DateTime LastLoginDate { get; set; }
+
+        // OverallProgress is stored in DB (different from in-memory ProgressPercentage)
+        // Keep ProgressPercentage for backward compat, add this for EF queries
+        [NotMapped]
+        public double OverallProgress { get; set; } = 0;
 
         // Parameterless constructor — required for EF Core AND JSON deserialize
         public Student() : base()

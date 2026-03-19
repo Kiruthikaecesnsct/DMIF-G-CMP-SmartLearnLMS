@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Week_1.Data;
 
@@ -11,9 +12,11 @@ using Week_1.Data;
 namespace Week_1.Migrations
 {
     [DbContext(typeof(SmartLearnDbContext))]
-    partial class SmartLearnDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260319092150_Week7Relationships")]
+    partial class Week7Relationships
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -78,14 +81,16 @@ namespace Week_1.Migrations
                     b.Property<int>("CourseId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("EnrolledDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("EnrollmentDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("EnrolledDate");
 
                     b.Property<bool>("IsCompleted")
                         .HasColumnType("bit");
 
-                    b.Property<int>("ProgressPercent")
-                        .HasColumnType("int");
+                    b.Property<int>("ProgressPercentage")
+                        .HasColumnType("int")
+                        .HasColumnName("ProgressPercent");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -108,11 +113,11 @@ namespace Week_1.Migrations
 
             modelBuilder.Entity("Week_1.Instructor", b =>
                 {
-                    b.Property<int?>("InstructorId")
+                    b.Property<int>("InstructorId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int?>("InstructorId"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InstructorId"));
 
                     b.Property<DateTime>("DateRegistered")
                         .HasColumnType("datetime2");
@@ -164,6 +169,9 @@ namespace Week_1.Migrations
                     b.Property<DateTime>("LastLoginDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<double>("OverallProgress")
+                        .HasColumnType("float");
+
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -185,7 +193,8 @@ namespace Week_1.Migrations
                     b.HasOne("Week_1.Instructor", "Instructor")
                         .WithMany("Courses")
                         .HasForeignKey("InstructorId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Instructor");
                 });

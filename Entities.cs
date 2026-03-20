@@ -6,117 +6,112 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Week_1
     {
     // ══════════════════════════════════════════════════════
-    //  USER ENTITY  (maps to Users table)
-    //  Assignment 6 — Part 2, Task 3
+    //  PART 1 TASK 2: COURSE MODULE HIERARCHY
     // ══════════════════════════════════════════════════════
-    public class UserEntity
+
+    /// <summary>
+    /// Represents a module (section) within a course.
+    /// A Course contains many CourseModules; each module contains many Lessons.
+    /// </summary>
+    public class CourseModule
         {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int UserId { get; set; }
+        public int ModuleId { get; set; }
 
         [Required]
-        [MaxLength(50)]
-        public string Username { get; set; }
-
-        [Required]
-        [MaxLength(100)]
-        public string Email { get; set; }
-
-        [Required]
-        [MaxLength(255)]
-        public string PasswordHash { get; set; }
-
-        [Required]
-        [MaxLength(20)]
-        public string UserType { get; set; }   // "Student" | "Instructor" | "Admin"
-
-        public DateTime CreatedDate { get; set; } = DateTime.Now;
-        public DateTime? LastLoginDate { get; set; }   // Part 5 Task 3 — added via migration
-
-        public bool IsActive { get; set; } = true;
-
-        // Navigation — enrollments this user has (as a student)
-        public virtual ICollection<EnrollmentEntity> Enrollments { get; set; }
-            = new List<EnrollmentEntity>();
-
-        // Navigation — courses this user teaches (as an instructor)
-        public virtual ICollection<CourseEntity> TaughtCourses { get; set; }
-            = new List<CourseEntity>();
-        }
-
-    // ══════════════════════════════════════════════════════
-    //  COURSE ENTITY  (maps to Courses table)
-    // ══════════════════════════════════════════════════════
-    public class CourseEntity
-        {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int CourseId { get; set; }
 
         [Required]
-        [MaxLength(100)]
+        [MaxLength(150)]
         public string Title { get; set; }
 
         [MaxLength(500)]
         public string Description { get; set; }
 
-        [Required]
-        [MaxLength(50)]
-        public string Category { get; set; }
+        /// <summary>Display order within the course (1, 2, 3…).</summary>
+        public int OrderIndex { get; set; }
 
-        [Required]
-        [MaxLength(20)]
-        public string DifficultyLevel { get; set; } = "Beginner";
+        /// <summary>Estimated hours to complete this module.</summary>
+        [Column(TypeName = "decimal(5,2)")]
+        public decimal DurationHours { get; set; }
 
-        [Required]
-        [MaxLength(20)]
-        public string CourseType { get; set; } = "Online";   // Online | InPerson | Hybrid
+        // ── Navigation properties ──
+        [ForeignKey(nameof(CourseId))]
+        public virtual CourseEntity Course { get; set; }
 
-        public int MaxCapacity { get; set; } = 30;
-        public int CurrentEnrollments { get; set; } = 0;
-
-        [MaxLength(100)]
-        public string InstructorName { get; set; }  // denormalised display name
-
-        public int? InstructorId { get; set; }      // FK to Users (optional)
-
-        public DateTime CreatedDate { get; set; } = DateTime.Now;
-
-        // Navigation
-        public virtual UserEntity Instructor { get; set; }
-        public virtual ICollection<EnrollmentEntity> Enrollments { get; set; }
-            = new List<EnrollmentEntity>();
+        public virtual ICollection<Lesson> Lessons { get; set; } = new List<Lesson>();
         }
 
     // ══════════════════════════════════════════════════════
-    //  ENROLLMENT ENTITY  (maps to Enrollments table)
+    //  PART 1 TASK 2: LESSON ENTITY
     // ══════════════════════════════════════════════════════
-    public class EnrollmentEntity
+
+    /// <summary>
+    /// Represents an individual lesson inside a CourseModule.
+    /// </summary>
+    public class Lesson
         {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int EnrollmentId { get; set; }
+        public int LessonId { get; set; }
 
         [Required]
-        public int StudentId { get; set; }
+        public int ModuleId { get; set; }
+
+        [Required]
+        [MaxLength(150)]
+        public string Title { get; set; }
+
+        [MaxLength(2000)]
+        public string Content { get; set; }
+
+        [MaxLength(500)]
+        public string VideoUrl { get; set; }
+
+        /// <summary>Display order within the module (1, 2, 3…).</summary>
+        public int OrderIndex { get; set; }
+
+        /// <summary>Estimated minutes to complete this lesson.</summary>
+        public int DurationMinutes { get; set; }
+
+        // ── Navigation property ──
+        [ForeignKey(nameof(ModuleId))]
+        public virtual CourseModule Module { get; set; }
+        }
+
+    // ══════════════════════════════════════════════════════
+    //  PART 1 TASK 3: COURSE RATING ENTITY
+    // ══════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Represents a student's rating and review for a course.
+    /// A student can only rate a course once (unique index on CourseId + StudentId).
+    /// </summary>
+    public class CourseRating
+        {
+        [Key]
+        public int RatingId { get; set; }
 
         [Required]
         public int CourseId { get; set; }
 
-        public DateTime EnrolledDate { get; set; } = DateTime.Now;
-
-        [Range(0, 100)]
-        public int ProgressPercent { get; set; } = 0;
-
-        public DateTime? CompletionDate { get; set; }
-
         [Required]
-        [MaxLength(20)]
-        public string Status { get; set; } = "Active";   // Active | Completed | Dropped
+        public int StudentId { get; set; }
 
-        // Navigation
-        public virtual UserEntity Student { get; set; }
+        /// <summary>Star rating: 1 (lowest) to 5 (highest).</summary>
+        [Required]
+        [Range(1, 5)]
+        public int Rating { get; set; }
+
+        [MaxLength(1000)]
+        public string ReviewText { get; set; }
+
+        public DateTime RatingDate { get; set; } = DateTime.Now;
+
+        // ── Navigation properties ──
+        [ForeignKey(nameof(CourseId))]
         public virtual CourseEntity Course { get; set; }
+
+        [ForeignKey(nameof(StudentId))]
+        public virtual UserEntity Student { get; set; }
         }
     }

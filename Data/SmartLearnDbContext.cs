@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Week_1;
+using Week_1.Logging;
 
 namespace Week_1.Data
     {
@@ -10,12 +11,11 @@ namespace Week_1.Data
         public DbSet<Course> Courses { get; set; }
         public DbSet<Enrollment> Enrollments { get; set; }
 
+        public DbSet<AuditLog> AuditLogs { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             {
-            optionsBuilder.UseSqlServer(@"Server=localhost\SQLEXPRESS;
-                                          Database=SmartLearnDB;
-                                          Trusted_Connection=True;
-                                          TrustServerCertificate=True;");
+            optionsBuilder.UseSqlServer(@"Server=localhost\SQLEXPRESS;Database=SmartLearnDB;Trusted_Connection=True;TrustServerCertificate=True;");
             }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

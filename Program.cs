@@ -5,7 +5,9 @@ using System.Text.Json;
 using Week_1;
 using Week_1.Data;
 using Week_1.Interfaces;
+using Week_1.Logging;
 using Week_1.Services;
+using Week_1.Validators;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using static System.Net.WebRequestMethods;
 
@@ -109,6 +111,46 @@ analyticsService.GetCategoryPopularity();
 enrollmentService.EnrollStudent(newStudent.StudentId, 2);
 enrollmentService.MarkAsCompleted(1); // enrollmentId = 1 from earlier run
 
+//-----------------------------------------------------------------------------
+// ── Week 8 Demo ───────────────────────────────────────────────────────────────
+Console.WriteLine("\n\n╔════════════════════════════════════╗");
+Console.WriteLine("║         WEEK 8 - LIVE DEMO          ║");
+Console.WriteLine("╚════════════════════════════════════╝");
 
-//Add-Migration Week7Relationships
-//Update - Database
+// 1. VALIDATION DEMO — show InputValidator catching bad input
+Console.WriteLine("\n--- INPUT VALIDATION ---");
+Console.WriteLine(InputValidator.IsValidEmail("notanemail")
+    ? "valid" : "❌ Bad email caught!");
+
+InputValidator.IsValidUsername("a", out string usernameErr);
+Console.WriteLine($"❌ Short username caught: {usernameErr}");
+
+InputValidator.IsStrongPassword("weakpass", out string passErr);
+Console.WriteLine($"❌ Weak password caught: {passErr}");
+
+// 2. EXCEPTION DEMO — show custom exceptions in action
+Console.WriteLine("\n--- CUSTOM EXCEPTIONS ---");
+var enrollmentService2 = new EnrollmentService();
+enrollmentService2.EnrollStudent(9999, 1);       // student doesn't exist
+enrollmentService2.EnrollStudent(newStudent.StudentId, 9999); // course doesn't exist
+
+// 3. LOGGER DEMO — show a log file being created
+Console.WriteLine("\n--- LOGGER DEMO ---");
+Logger.Info("Demo", "App started successfully");
+Logger.Warning("Demo", "This is a warning example");
+Logger.Error("Demo", "This is an error example");
+
+// 4. AUDIT TRAIL DEMO
+Console.WriteLine("\n--- AUDIT TRAIL ---");
+using (var db = new SmartLearnDbContext())
+    {
+    AuditService.LogAction(db, "DemoAction", "Demo",
+        newStudent?.Username ?? "testuser", newStudent?.StudentId,
+        new { Note = "Week 8 demo audit entry" });
+
+    var recentLogs = AuditService.GetRecentActivity(db, 5);
+    Console.WriteLine($"✅ Audit trail has {recentLogs.Count} recent entries");
+    }
+//Add - Migration Week8AuditLog
+// Remove the down (drop) lines from the migration file itself
+//Update-Database

@@ -1,21 +1,25 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Week_1;
+using Week_1.Exceptions;
+using Week_1.Logging;
 using Week_1.Services;
-using Microsoft.EntityFrameworkCore;
+using Week_1.Tests;
+using Week_1.Validators;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  SmartLearn LMS — Assignment 7 (Advanced Relationships & Analytics Edition)
-//  Changes from Assignment 6:
-//    • New services registered: StudentService, InstructorService,
-//      CourseService, EnrollmentService7, AnalyticsService
-//    • Student dashboard: added [13] My Dashboard, [14] Completed Courses,
-//      [15] At-Risk Courses, [16] Course Recommendations
-//    • Instructor dashboard: added [13] My Dashboard (Wk7), [14] Course Analytics,
-//      [15] Top Students in Course, [16] At-Risk Students
-//    • Admin dashboard [4] now routes to full Assignment 7 Analytics menu
-//    • Migration reminder added to startup output
+//  SmartLearn LMS — Assignment 8 (Exception Handling, Validation & Logging)
+//  Changes from Assignment 7:
+//    • Registration: InputValidator + DuplicateUsername/Email exceptions
+//    • Login: InvalidCredentialsException + failed-login audit logging
+//    • All Wk8 services injected (logging, validation, custom exceptions)
+//    • Student  dashboard: [17] View Audit Log (my activity)
+//    • Admin    dashboard: [5] Run Test Suite, [8] View System Audit Log
+//    • Main menu: [7] Run Test Suite added
+//    • Migration reminder updated for Assignment 8 (AuditLogs table)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 namespace SmartLearnLMS
@@ -25,24 +29,27 @@ namespace SmartLearnLMS
         // ── Currently logged-in user ──
         static UserEntity currentUser = null;
 
-        // ── Assignment 6 services (unchanged) ──
-        static readonly AdoNetService adoService = new AdoNetService();
-        static readonly EfStudentService efStudents = new EfStudentService();
-        static readonly EfCourseService efCourses = new EfCourseService();
-        static readonly EfEnrollmentService efEnrollments = new EfEnrollmentService();
-        static readonly EfInstructorService efInstructors = new EfInstructorService();
-        static readonly EfAdminService efAdmin = new EfAdminService();
-        static readonly NotificationService notifService = new NotificationService();
-        static readonly ReportService reportService = new ReportService();
-        static readonly SearchService searchService = new SearchService();
-        static readonly EnrollmentService enrollSvc = new EnrollmentService();
+        // ── Logging / Audit (NEW Wk8) ──
+        static readonly Logger _log = Logger.Instance;
+        static readonly AuditService _audit = new();
 
-        // ── Assignment 7 NEW services ──
-        static readonly StudentService studentSvc = new StudentService();
-        static readonly InstructorService instructorSvc = new InstructorService();
-        static readonly CourseService courseSvc = new CourseService();
-        static readonly EnrollmentService enrollSvc7 = new EnrollmentService();
-        static readonly AnalyticsService analyticsSvc = new AnalyticsService();
+        // ── Assignment 6 services (unchanged) ──
+        static readonly AdoNetService adoService = new();
+        static readonly EfStudentService efStudents = new();
+        static readonly EfCourseService efCourses = new();
+        static readonly EfEnrollmentService efEnrollments = new();
+        static readonly EfInstructorService efInstructors = new();
+        static readonly EfAdminService efAdmin = new();
+        static readonly NotificationService notifService = new();
+        static readonly ReportService reportService = new();
+        static readonly SearchService searchService = new();
+
+        // ── Assignment 7 / 8 services ──
+        static readonly StudentService studentSvc = new();
+        static readonly InstructorService instructorSvc = new();
+        static readonly CourseService courseSvc = new();
+        static readonly EnrollmentService enrollSvc = new();   // Wk8 version
+        static readonly AnalyticsService analyticsSvc = new();
 
         // ════════════════════════════════════════════════════════
         //  ENTRY POINT
@@ -50,11 +57,12 @@ namespace SmartLearnLMS
         static void Main(string[] args)
             {
             Console.Clear();
-            Console.WriteLine("  Initialising SmartLearn LMS — Assignment 7...");
+            _log.Info("Program", "SmartLearn LMS starting up — Assignment 8.");
+            Console.WriteLine("  Initialising SmartLearn LMS — Assignment 8...");
             Console.WriteLine("  ─────────────────────────────────────────────");
-            Console.WriteLine("  NOTE: If this is first run after Assignment 7,");
-            Console.WriteLine("  run in Package Manager Console:");
-            Console.WriteLine("    Add-Migration AddCourseHierarchyAndRatings");
+            Console.WriteLine("  NOTE: If first run after Assignment 8, run in");
+            Console.WriteLine("  Package Manager Console:");
+            Console.WriteLine("    Add-Migration AddAuditLogsAndIndexes");
             Console.WriteLine("    Update-Database");
             Console.WriteLine("  ─────────────────────────────────────────────");
 
@@ -88,22 +96,27 @@ namespace SmartLearnLMS
                 Console.WriteLine("  Seeding initial course data...");
                 var seed = new List<CourseEntity>
                 {
-                    new() { Title="C# Fundamentals",          Description="Learn C# from scratch",            Category="Programming",      DifficultyLevel="Beginner",     MaxCapacity=999, InstructorName="Prof. Smith" },
+                    new() { Title="C# Fundamentals",          Description="Learn C# from scratch",            Category="Programming",      DifficultyLevel="Beginner",     MaxCapacity=999, InstructorName="Prof. Smith"   },
                     new() { Title="Python for Beginners",     Description="Intro to Python programming",      Category="Programming",      DifficultyLevel="Beginner",     MaxCapacity=999, InstructorName="Prof. Johnson" },
-                    new() { Title="Web Development Basics",   Description="HTML, CSS and JS fundamentals",    Category="Web Development",  DifficultyLevel="Beginner",     MaxCapacity=999, InstructorName="Prof. Garcia" },
-                    new() { Title="Data Structures",          Description="Arrays, Lists, Trees and more",    Category="Computer Science", DifficultyLevel="Intermediate", MaxCapacity=999, InstructorName="Prof. Smith" },
-                    new() { Title="Machine Learning Intro",   Description="Basics of ML and AI concepts",     Category="Data Science",     DifficultyLevel="Intermediate", MaxCapacity=999, InstructorName="Prof. Lee" },
+                    new() { Title="Web Development Basics",   Description="HTML, CSS and JS fundamentals",    Category="Web Development",  DifficultyLevel="Beginner",     MaxCapacity=999, InstructorName="Prof. Garcia"  },
+                    new() { Title="Data Structures",          Description="Arrays, Lists, Trees and more",    Category="Computer Science", DifficultyLevel="Intermediate", MaxCapacity=999, InstructorName="Prof. Smith"   },
+                    new() { Title="Machine Learning Intro",   Description="Basics of ML and AI concepts",     Category="Data Science",     DifficultyLevel="Intermediate", MaxCapacity=999, InstructorName="Prof. Lee"     },
                     new() { Title="Database Design Workshop", Description="Relational DB and SQL",            Category="Database",         DifficultyLevel="Intermediate", MaxCapacity=25,  InstructorName="Prof. Johnson" },
-                    new() { Title="Network Security Lab",     Description="Practical cybersecurity skills",   Category="Security",         DifficultyLevel="Advanced",     MaxCapacity=20,  InstructorName="Prof. Brown" },
-                    new() { Title="Mobile App Development",   Description="Build iOS and Android apps",       Category="Mobile",           DifficultyLevel="Intermediate", MaxCapacity=30,  InstructorName="Prof. Garcia" },
-                    new() { Title="Full-Stack Development",   Description="Frontend + Backend full stack",    Category="Web Development",  DifficultyLevel="Advanced",     MaxCapacity=30,  InstructorName="Prof. Garcia" },
-                    new() { Title="Cloud Computing",          Description="AWS, Azure and cloud concepts",    Category="Cloud",            DifficultyLevel="Intermediate", MaxCapacity=25,  InstructorName="Prof. Lee" },
+                    new() { Title="Network Security Lab",     Description="Practical cybersecurity skills",   Category="Security",         DifficultyLevel="Advanced",     MaxCapacity=20,  InstructorName="Prof. Brown"   },
+                    new() { Title="Mobile App Development",   Description="Build iOS and Android apps",       Category="Mobile",           DifficultyLevel="Intermediate", MaxCapacity=30,  InstructorName="Prof. Garcia"  },
+                    new() { Title="Full-Stack Development",   Description="Frontend + Backend full stack",    Category="Web Development",  DifficultyLevel="Advanced",     MaxCapacity=30,  InstructorName="Prof. Garcia"  },
+                    new() { Title="Cloud Computing",          Description="AWS, Azure and cloud concepts",    Category="Cloud",            DifficultyLevel="Intermediate", MaxCapacity=25,  InstructorName="Prof. Lee"     },
                 };
                 ctx.Courses.AddRange(seed);
                 ctx.SaveChanges();
                 Console.WriteLine($"  ✓ {seed.Count} courses seeded.");
+                _log.Info("Program", $"{seed.Count} courses seeded on startup.");
                 }
-            catch (Exception ex) { Console.WriteLine($"  ⚠ Seed warning: {ex.Message}"); }
+            catch (Exception ex)
+                {
+                Console.WriteLine($"  ⚠ Seed warning: {ex.Message}");
+                _log.Warning("Program", $"Seed warning: {ex.Message}");
+                }
             }
 
         // ════════════════════════════════════════════════════════
@@ -114,7 +127,7 @@ namespace SmartLearnLMS
             Console.Clear();
             Console.WriteLine("╔════════════════════════════════╗");
             Console.WriteLine("║    Welcome to SmartLearn LMS   ║");
-            Console.WriteLine("║    (Assignment 7 — Wk7 Ed.)    ║");
+            Console.WriteLine("║    (Assignment 8 — Wk8 Ed.)    ║");
             Console.WriteLine("╚════════════════════════════════╝");
             Console.WriteLine("  [1] Register");
             Console.WriteLine("  [2] Login");
@@ -122,6 +135,7 @@ namespace SmartLearnLMS
             Console.WriteLine("  [4] Search Courses");
             Console.WriteLine("  [5] Analytics & Reports");
             Console.WriteLine("  [6] Exit");
+            Console.WriteLine("  [7] Run Test Suite");           // NEW Wk8
             Console.WriteLine("════════════════════════════════");
             Console.Write("  Choice: ");
 
@@ -133,8 +147,13 @@ namespace SmartLearnLMS
                 case "4": SearchCourses(); break;
                 case "5": ShowAnalyticsMenu(); break;
                 case "6":
+                    _log.Info("Program", "Application exiting normally.");
                     Console.WriteLine("  Goodbye!");
                     return false;
+                case "7":                      // NEW Wk8
+                    SmartLearnTests.RunAll();
+                    Console.ReadKey();
+                    break;
                 default:
                     Console.WriteLine("  Invalid choice.");
                     Console.ReadKey();
@@ -144,7 +163,7 @@ namespace SmartLearnLMS
             }
 
         // ════════════════════════════════════════════════════════
-        //  REGISTER
+        //  REGISTER  (Wk8: InputValidator + custom exceptions)
         // ════════════════════════════════════════════════════════
         static void RegisterUser()
             {
@@ -158,25 +177,61 @@ namespace SmartLearnLMS
             Console.Write("  Password : "); string password = Console.ReadLine();
             Console.Write("  Role (Student/Instructor/Admin): "); string role = Console.ReadLine();
 
-            if (string.IsNullOrWhiteSpace(username) || username.Length < 3)
-                { Console.WriteLine("  ✗ Username must be at least 3 characters."); Console.ReadKey(); return; }
-            if (string.IsNullOrWhiteSpace(email) || !email.Contains("@"))
-                { Console.WriteLine("  ✗ Invalid email — must contain @"); Console.ReadKey(); return; }
-            if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
-                { Console.WriteLine("  ✗ Password must be at least 8 characters."); Console.ReadKey(); return; }
-            if (!password.Any(char.IsDigit))
-                { Console.WriteLine("  ✗ Password must contain at least 1 digit."); Console.ReadKey(); return; }
-            if (role != "Student" && role != "Instructor" && role != "Admin")
-                { Console.WriteLine("  ✗ Role must be: Student, Instructor, or Admin"); Console.ReadKey(); return; }
+            // ── Input validation (Wk8) ──
+            if (!InputValidator.ValidateUsername(username, out string uErr))
+                { Console.WriteLine($"  ✗ {uErr}"); Console.ReadKey(); return; }
 
-            var created = efAdmin.CreateUser(username, email, password, role);
-            if (created != null)
-                Console.WriteLine($"\n  ✓ Registered as {role}! Welcome, {username}! (DB ID: {created.UserId})");
-            Console.ReadKey();
+            if (!InputValidator.ValidateEmail(email, out string eErr))
+                { Console.WriteLine($"  ✗ {eErr}"); Console.ReadKey(); return; }
+
+            if (!InputValidator.ValidatePassword(password, out string pErr))
+                { Console.WriteLine($"  ✗ {pErr}"); Console.ReadKey(); return; }
+
+            if (!InputValidator.ValidateRole(role, out string rErr))
+                { Console.WriteLine($"  ✗ {rErr}"); Console.ReadKey(); return; }
+
+            try
+                {
+                // ── Duplicate checks (Wk8 custom exceptions) ──
+                using var ctx = new SmartLearnDbContext();
+                if (ctx.Users.Any(u => u.Username == username))
+                    throw new DuplicateUsernameException(username);
+                if (ctx.Users.Any(u => u.Email == email))
+                    throw new DuplicateEmailException(email);
+
+                var created = efAdmin.CreateUser(username, email, password, role);
+                if (created != null)
+                    {
+                    Console.WriteLine($"\n  ✓ Registered as {role}! Welcome, {username}! (DB ID: {created.UserId})");
+                    _log.Info("Program", $"New user registered: '{username}' [{role}].");
+                    _audit.LogAction("UserRegistered", "Auth",
+                        username: username, userId: created.UserId,
+                        details: new() { ["role"] = role });
+                    }
+                }
+            catch (DuplicateUsernameException ex)
+                {
+                _log.Warning("Program", ex.Message);
+                Console.WriteLine($"  ✗ {ex.Message}");
+                }
+            catch (DuplicateEmailException ex)
+                {
+                _log.Warning("Program", ex.Message);
+                Console.WriteLine($"  ✗ {ex.Message}");
+                }
+            catch (Exception ex)
+                {
+                _log.Error("Program", $"Registration error: {ex.Message}", username, ex);
+                Console.WriteLine($"  ✗ Registration failed: {ex.Message}");
+                }
+            finally
+                {
+                Console.ReadKey();
+                }
             }
 
         // ════════════════════════════════════════════════════════
-        //  LOGIN
+        //  LOGIN  (Wk8: InvalidCredentialsException + audit)
         // ════════════════════════════════════════════════════════
         static void LoginUser()
             {
@@ -191,9 +246,11 @@ namespace SmartLearnLMS
             try
                 {
                 using var ctx = new SmartLearnDbContext();
-                var user = ctx.Users.FirstOrDefault(u => u.Username == username && u.PasswordHash == password);
+                var user = ctx.Users.FirstOrDefault(u => u.Username == username
+                                                      && u.PasswordHash == password);
                 if (user == null)
-                    { Console.WriteLine("  ✗ Invalid username or password."); Console.ReadKey(); return; }
+                    throw new InvalidCredentialsException(username);
+
                 if (!user.IsActive)
                     { Console.WriteLine("  ✗ Account is deactivated. Contact admin."); Console.ReadKey(); return; }
 
@@ -202,10 +259,26 @@ namespace SmartLearnLMS
                 currentUser = user;
 
                 Console.WriteLine($"\n  ✓ Welcome back, {user.Username}! [{user.UserType}]");
+                _log.Info("Program", $"User '{username}' logged in successfully.", username);
+                _audit.LogAction("UserLogin", "Auth", username: username, userId: user.UserId);
                 Console.ReadKey();
                 RunDashboard();
                 }
-            catch (Exception ex) { Console.WriteLine($"  ✗ Login error: {ex.Message}"); Console.ReadKey(); }
+            catch (InvalidCredentialsException ex)
+                {
+                _log.Warning("Program", $"Failed login attempt for '{username}'.");
+                _audit.LogAction("FailedLogin", "Auth",
+                    username: username,
+                    details: new() { ["reason"] = "InvalidCredentials" });
+                Console.WriteLine($"  ✗ {ex.Message}");
+                Console.ReadKey();
+                }
+            catch (Exception ex)
+                {
+                _log.Error("Program", $"Login error: {ex.Message}", username, ex);
+                Console.WriteLine($"  ✗ Login error: {ex.Message}");
+                Console.ReadKey();
+                }
             }
 
         // ════════════════════════════════════════════════════════
@@ -255,11 +328,13 @@ namespace SmartLearnLMS
                     Console.WriteLine("  [10] ADO.NET — View My Enrollments");
                     Console.WriteLine("  [11] ADO.NET — View All Students");
                     Console.WriteLine("  [12] ADO.NET — View All Courses");
-                    Console.WriteLine("  ── Assignment 7 (NEW) ──────────");
+                    Console.WriteLine("  ── Assignment 7 ────────────────");
                     Console.WriteLine("  [13] My Full Dashboard (Wk7)");
                     Console.WriteLine("  [14] My Completed Courses");
                     Console.WriteLine("  [15] My At-Risk Courses");
                     Console.WriteLine("  [16] Recommended Courses For Me");
+                    Console.WriteLine("  ── Assignment 8 (NEW) ──────────");
+                    Console.WriteLine("  [17] My Audit / Activity Log");
                     Console.WriteLine("  [0]  Logout");
                     break;
 
@@ -282,12 +357,14 @@ namespace SmartLearnLMS
                     Console.WriteLine("  [9]  My Profile (with courses)");
                     Console.WriteLine("  [10] My Courses + Students (deep)");
                     Console.WriteLine("  [11] ADO.NET — Direct Course Insert");
-                    Console.WriteLine("  [12] ADO.NET — View All Students");
-                    Console.WriteLine("  ── Assignment 7 (NEW) ──────────");
+                    Console.WriteLine("  [12] ADO.NET — All Students");
+                    Console.WriteLine("  ── Assignment 7 ────────────────");
                     Console.WriteLine("  [13] My Full Dashboard (Wk7)");
                     Console.WriteLine("  [14] Course Analytics");
                     Console.WriteLine("  [15] Top Students in a Course");
                     Console.WriteLine("  [16] Students At Risk (My Courses)");
+                    Console.WriteLine("  ── Assignment 8 (NEW) ──────────");
+                    Console.WriteLine("  [17] My Audit / Activity Log");
                     Console.WriteLine("  [0]  Logout");
                     break;
 
@@ -301,10 +378,13 @@ namespace SmartLearnLMS
                     Console.WriteLine("  [1]  Manage Users");
                     Console.WriteLine("  [2]  Manage Courses");
                     Console.WriteLine("  [3]  Manage Enrollments");
-                    Console.WriteLine("  [4]  Assignment 7 Analytics (NEW)");
+                    Console.WriteLine("  [4]  Assignment 7 Analytics");
                     Console.WriteLine("  [5]  Assignment 6 Analytics");
                     Console.WriteLine("  [6]  ADO.NET Operations");
                     Console.WriteLine("  [7]  Advanced Queries");
+                    Console.WriteLine("  ── Assignment 8 (NEW) ──────────");
+                    Console.WriteLine("  [8]  System Audit Log");
+                    Console.WriteLine("  [9]  Run Test Suite");
                     Console.WriteLine("  [0]  Logout");
                     break;
                 }
@@ -319,10 +399,8 @@ namespace SmartLearnLMS
             Console.Clear();
             switch (choice)
                 {
-                // ── [1] Browse & Enroll ──────────────────────
                 case "1": BrowseAndEnroll(); break;
 
-                // ── [2] My Enrolled Courses ──────────────────
                 case "2":
                     Console.WriteLine($"  === {currentUser.Username}'s Enrolled Courses ===\n");
                     var myEnrollments = efEnrollments.GetStudentEnrollments(currentUser.UserId);
@@ -337,29 +415,23 @@ namespace SmartLearnLMS
                         }
                     Console.ReadKey(); break;
 
-                // ── [3] Update Progress ──────────────────────
                 case "3": UpdateMyProgress(); break;
 
-                // ── [4] My Profile & Report ──────────────────
                 case "4":
                     DisplayStudentReport(currentUser);
                     Console.ReadKey(); break;
 
-                // ── [5] Drop a Course ────────────────────────
                 case "5": DropCourse(); break;
 
-                // ── [6] Search Courses ───────────────────────
                 case "6":
                     SearchCourses();
                     Console.ReadKey(); break;
 
-                // ── [7] My Active Courses ────────────────────
                 case "7":
                     Console.WriteLine($"  === {currentUser.Username}'s Active Courses ===\n");
                     efEnrollments.DisplayEnrollmentList(efStudents.GetActiveEnrollments(currentUser.UserId));
                     Console.ReadKey(); break;
 
-                // ── [8] Students Above Progress % ────────────
                 case "8":
                     Console.Write("  Minimum progress %: ");
                     if (int.TryParse(Console.ReadLine(), out int minP))
@@ -370,7 +442,6 @@ namespace SmartLearnLMS
                         }
                     Console.ReadKey(); break;
 
-                // ── [9] Filter by Progress + Category ────────
                 case "9":
                     Console.Write("  Min progress % : "); int.TryParse(Console.ReadLine(), out int mp);
                     Console.Write("  Category       : "); string mpCat = Console.ReadLine();
@@ -379,54 +450,53 @@ namespace SmartLearnLMS
                     foreach (var s in filtered) efStudents.DisplayStudentEntity(s);
                     Console.ReadKey(); break;
 
-                // ── [10] ADO.NET — My Enrollments ────────────
                 case "10":
                     Console.WriteLine($"  ── My Enrollments via ADO.NET (ID: {currentUser.UserId}) ──\n");
                     adoService.GetEnrollmentsByStudent(currentUser.UserId);
                     Console.ReadKey(); break;
 
-                // ── [11] ADO.NET — All Students ──────────────
                 case "11":
                     adoService.DisplayStudents(adoService.GetAllStudentsAdo());
                     Console.ReadKey(); break;
 
-                // ── [12] ADO.NET — All Courses ───────────────
                 case "12":
                     adoService.DisplayCourses(adoService.GetAllCoursesAdo());
                     Console.ReadKey(); break;
 
-                // ════════════════════════════════════════════
-                //  ASSIGNMENT 7 — NEW STUDENT OPTIONS
-                // ════════════════════════════════════════════
-
-                // ── [13] My Full Dashboard (Wk7) ─────────────
+                // ── Assignment 7 ──
                 case "13":
                     studentSvc.GetStudentDashboard(currentUser.UserId);
                     Console.ReadKey(); break;
 
-                // ── [14] My Completed Courses ─────────────────
                 case "14":
                     Console.WriteLine($"  === {currentUser.Username}'s Completed Courses ===");
                     var completed = studentSvc.GetStudentCompletedCourses(currentUser.UserId);
                     studentSvc.DisplayCompletedCourses(completed);
                     Console.ReadKey(); break;
 
-                // ── [15] My At-Risk Courses ───────────────────
                 case "15":
                     Console.WriteLine($"  === {currentUser.Username}'s At-Risk Courses ===");
                     var atRisk = studentSvc.GetStudentAtRiskCourses(currentUser.UserId);
                     studentSvc.DisplayAtRiskCourses(atRisk);
                     Console.ReadKey(); break;
 
-                // ── [16] Recommended Courses ──────────────────
                 case "16":
-                    Console.WriteLine($"  === Courses Recommended For You ===");
+                    Console.WriteLine("  === Courses Recommended For You ===");
                     var recs = courseSvc.GetRecommendedCourses(currentUser.UserId);
                     courseSvc.DisplayRecommendedCourses(recs);
                     Console.ReadKey(); break;
 
-                // ── [0] Logout ────────────────────────────────
+                // ── Assignment 8 (NEW) ──
+                case "17":
+                    Console.WriteLine($"  === {currentUser.Username}'s Audit Log ===");
+                    var myLogs = _audit.GetUserActivity(currentUser.UserId, 30);
+                    _audit.DisplayAuditLog(myLogs);
+                    Console.ReadKey(); break;
+
                 case "0":
+                    _log.Info("Program", $"'{currentUser.Username}' logged out.", currentUser.Username);
+                    _audit.LogAction("UserLogout", "Auth",
+                        username: currentUser.Username, userId: currentUser.UserId);
                     currentUser = null;
                     Console.WriteLine("  ✓ Logged out.");
                     Console.ReadKey();
@@ -446,7 +516,8 @@ namespace SmartLearnLMS
             DisplayCourseTable(courses);
             Console.Write("\n  Enter Course ID to enroll (0 = cancel): ");
             if (!int.TryParse(Console.ReadLine(), out int courseId) || courseId == 0) return;
-            efEnrollments.EnrollStudent(currentUser.UserId, courseId);
+            // Use Wk8 EnrollmentService (validates business rules + logs)
+            enrollSvc.EnrollStudent(currentUser.UserId, courseId);
             Console.ReadKey();
             }
 
@@ -462,7 +533,7 @@ namespace SmartLearnLMS
             Console.Write("  New Progress (0-100): ");
             if (!int.TryParse(Console.ReadLine(), out int newProg)) { Console.WriteLine("  ✗ Invalid."); Console.ReadKey(); return; }
 
-            // Use Wk7 StudentService which auto-completes at 100%
+            // Use Wk8 StudentService (validates no decrease + logs)
             bool ok = studentSvc.UpdateCourseProgress(currentUser.UserId, cId, newProg);
             if (ok && newProg >= 75 && newProg < 100)
                 Console.WriteLine($"  Great progress! You're {newProg}% through!");
@@ -479,7 +550,8 @@ namespace SmartLearnLMS
                 Console.WriteLine($"  [{e.CourseId}] {e.Course?.Title ?? "N/A"} — {e.ProgressPercent}%");
             Console.Write("\n  Enter Course ID to drop (0 = cancel): ");
             if (!int.TryParse(Console.ReadLine(), out int dropId) || dropId == 0) return;
-            efEnrollments.DropCourse(currentUser.UserId, dropId);
+            // Use Wk8 EnrollmentService (validates drop deadline + logs)
+            enrollSvc.DropCourse(currentUser.UserId, dropId);
             Console.ReadKey();
             }
 
@@ -491,7 +563,6 @@ namespace SmartLearnLMS
             Console.Clear();
             switch (choice)
                 {
-                // ── [1] My Courses ───────────────────────────
                 case "1":
                     Console.WriteLine($"  === {currentUser.Username}'s Courses ===\n");
                     var myCourses = efCourses.GetAllCourses()
@@ -501,45 +572,39 @@ namespace SmartLearnLMS
                     else DisplayCourseTable(myCourses);
                     Console.ReadKey(); break;
 
-                // ── [2] Create New Course ────────────────────
                 case "2":
                     Console.WriteLine("  === Create New Course ===\n");
                     Console.Write("  Title       : "); string ct = Console.ReadLine();
+                    if (!InputValidator.ValidateCourseTitle(ct, out string titleErr))
+                        { Console.WriteLine($"  ✗ {titleErr}"); Console.ReadKey(); break; }
                     Console.Write("  Description : "); string cd = Console.ReadLine();
                     Console.Write("  Category    : "); string cc = Console.ReadLine();
                     Console.Write("  Difficulty (Beginner/Intermediate/Advanced): "); string cdif = Console.ReadLine();
                     Console.Write("  Max Capacity: "); int.TryParse(Console.ReadLine(), out int cap);
                     efCourses.CreateCourse(ct, cd, cc, cdif, cap, currentUser.Username, currentUser.UserId);
+                    _audit.LogAction("CourseCreated", "Course",
+                        username: currentUser.Username, userId: currentUser.UserId,
+                        details: new() { ["title"] = ct, ["category"] = cc });
                     Console.ReadKey(); break;
 
-                // ── [3] Student Roster ───────────────────────
                 case "3":
                     Console.WriteLine("  === All Registered Students ===\n");
                     efAdmin.DisplayUserList(efStudents.GetAllStudents());
                     Console.ReadKey(); break;
 
-                // ── [4] Enrollments for My Course ────────────
                 case "4":
                     Console.Write("  Enter Course ID: ");
                     if (int.TryParse(Console.ReadLine(), out int enrCourseId))
-                        {
-                        efEnrollments.DisplayEnrollmentList(
-                            efEnrollments.GetCourseEnrollments(enrCourseId));
-                        }
+                        efEnrollments.DisplayEnrollmentList(efEnrollments.GetCourseEnrollments(enrCourseId));
                     Console.ReadKey(); break;
 
-                // ── [5] Search Courses ───────────────────────
-                case "5":
-                    SearchCourses();
-                    Console.ReadKey(); break;
+                case "5": SearchCourses(); Console.ReadKey(); break;
 
-                // ── [6] Top Courses by Enrollment ────────────
                 case "6":
                     Console.WriteLine("  === Top 5 Courses by Enrollment ===\n");
                     DisplayCourseTable(efCourses.GetTopCoursesByEnrollment(5));
                     Console.ReadKey(); break;
 
-                // ── [7] Enrollments by Category ──────────────
                 case "7":
                     Console.WriteLine("  === Enrollments by Category ===\n");
                     var catGrp = efCourses.GetEnrollmentsByCategory();
@@ -549,26 +614,22 @@ namespace SmartLearnLMS
                         Console.WriteLine($"  {kv.Key,-26}{kv.Value}");
                     Console.ReadKey(); break;
 
-                // ── [8] Change Enrollment Status ─────────────
                 case "8":
                     Console.Write("  Enrollment ID : "); int.TryParse(Console.ReadLine(), out int enrId);
                     Console.Write("  New Status (Active/Completed/Dropped): "); string newSt = Console.ReadLine();
                     efEnrollments.ChangeEnrollmentStatus(enrId, newSt);
                     Console.ReadKey(); break;
 
-                // ── [9] My Profile ───────────────────────────
                 case "9":
                     efInstructors.DisplayInstructorWithCourses(
                         efInstructors.GetInstructorWithCourses(currentUser.UserId));
                     Console.ReadKey(); break;
 
-                // ── [10] My Courses + Students (deep) ────────
                 case "10":
                     efInstructors.DisplayInstructorWithCoursesAndStudents(
                         efInstructors.GetInstructorWithCoursesAndStudents(currentUser.UserId));
                     Console.ReadKey(); break;
 
-                // ── [11] ADO.NET — Direct Insert ─────────────
                 case "11":
                     Console.WriteLine("  === ADO.NET: Insert Course Directly ===\n");
                     Console.Write("  Title       : "); string at = Console.ReadLine();
@@ -578,43 +639,47 @@ namespace SmartLearnLMS
                     adoService.InsertCourseAdo(at, ac, ad, am, currentUser.Username);
                     Console.ReadKey(); break;
 
-                // ── [12] ADO.NET — All Students ──────────────
                 case "12":
                     adoService.DisplayStudents(adoService.GetAllStudentsAdo());
                     Console.ReadKey(); break;
 
-                // ════════════════════════════════════════════
-                //  ASSIGNMENT 7 — NEW INSTRUCTOR OPTIONS
-                // ════════════════════════════════════════════
-
-                // ── [13] My Full Dashboard (Wk7) ─────────────
+                // ── Assignment 7 ──
                 case "13":
                     instructorSvc.GetInstructorDashboard(currentUser.UserId);
                     Console.ReadKey(); break;
 
-                // ── [14] Course Analytics ─────────────────────
                 case "14":
                     Console.Write("  Enter Course ID: ");
                     if (int.TryParse(Console.ReadLine(), out int cAId))
                         instructorSvc.GetCourseAnalytics(cAId);
                     Console.ReadKey(); break;
 
-                // ── [15] Top Students in Course ───────────────
                 case "15":
-                    Console.Write("  Course ID : "); int.TryParse(Console.ReadLine(), out int topCId);
-                    Console.Write("  Top N     : "); int.TryParse(Console.ReadLine(), out int topN);
-                    if (topN < 1) topN = 5;
-                    var topStudents = instructorSvc.GetTopStudentsInCourse(topCId, topN);
-                    instructorSvc.DisplayTopStudents(topStudents);
+                    Console.Write("  Enter Course ID: ");
+                    if (int.TryParse(Console.ReadLine(), out int tsId))
+                        {
+                        Console.Write("  Top N students : ");
+                        int.TryParse(Console.ReadLine(), out int topN);
+                        var top = instructorSvc.GetTopStudentsInCourse(tsId, topN > 0 ? topN : 5);
+                        instructorSvc.DisplayTopStudents(top);
+                        }
                     Console.ReadKey(); break;
 
-                // ── [16] Students At Risk ─────────────────────
                 case "16":
                     instructorSvc.GetStudentsAtRisk(currentUser.UserId);
                     Console.ReadKey(); break;
 
-                // ── [0] Logout ────────────────────────────────
+                // ── Assignment 8 (NEW) ──
+                case "17":
+                    Console.WriteLine($"  === {currentUser.Username}'s Audit Log ===");
+                    var iLogs = _audit.GetUserActivity(currentUser.UserId, 30);
+                    _audit.DisplayAuditLog(iLogs);
+                    Console.ReadKey(); break;
+
                 case "0":
+                    _log.Info("Program", $"'{currentUser.Username}' logged out.", currentUser.Username);
+                    _audit.LogAction("UserLogout", "Auth",
+                        username: currentUser.Username, userId: currentUser.UserId);
                     currentUser = null;
                     Console.WriteLine("  ✓ Logged out.");
                     Console.ReadKey();
@@ -635,20 +700,34 @@ namespace SmartLearnLMS
             Console.Clear();
             switch (choice)
                 {
-                case "1": AdminManageUsers(); break;
-                case "2": AdminManageCourses(); break;
-                case "3": AdminManageEnrollments(); break;
-                case "4": AdminAnalyticsWk7(); break;      // NEW — Assignment 7
-                case "5":
-                    efAdmin.DisplaySystemAnalytics();       // Assignment 6 (kept)
+                case "1": ShowAdminUserMenu(); break;
+                case "2": ShowAdminCourseMenu(); break;
+                case "3": ShowAdminEnrollMenu(); break;
+                case "4": ShowAdminAnalytics7Menu(); break;
+                case "5": efAdmin.DisplaySystemAnalytics(); Console.ReadKey(); break;
+                case "6": ShowAdoMenu(); break;
+                case "7": ShowAdvancedQueryMenu(); break;
+
+                // ── Assignment 8 (NEW) ──
+                case "8":
+                    Console.WriteLine("  === System Audit Log (Recent 50) ===");
+                    var recent = _audit.GetRecentActivity(50);
+                    _audit.DisplayAuditLog(recent);
                     Console.ReadKey(); break;
-                case "6": AdminAdoNetMenu(); break;
-                case "7": AdminAdvancedQueries(); break;
+
+                case "9":
+                    SmartLearnTests.RunAll();
+                    Console.ReadKey(); break;
+
                 case "0":
+                    _log.Info("Program", $"Admin '{currentUser.Username}' logged out.", currentUser.Username);
+                    _audit.LogAction("UserLogout", "Auth",
+                        username: currentUser.Username, userId: currentUser.UserId);
                     currentUser = null;
                     Console.WriteLine("  ✓ Logged out.");
                     Console.ReadKey();
                     return false;
+
                 default:
                     Console.WriteLine("  Invalid choice.");
                     Console.ReadKey(); break;
@@ -656,196 +735,45 @@ namespace SmartLearnLMS
             return true;
             }
 
-        // ════════════════════════════════════════════════════════
-        //  ASSIGNMENT 7 — ADMIN ANALYTICS MENU (NEW)
-        // ════════════════════════════════════════════════════════
-        static void AdminAnalyticsWk7()
+        // ── Admin sub-menus (unchanged from Wk7 except case labels) ───
+
+        static void ShowAdminUserMenu()
             {
             bool back = false;
             while (!back)
                 {
                 Console.Clear();
                 Console.WriteLine("╔════════════════════════════════════════╗");
-                Console.WriteLine("║     ASSIGNMENT 7 — ANALYTICS (WK7)    ║");
+                Console.WriteLine("║           MANAGE USERS                 ║");
                 Console.WriteLine("╚════════════════════════════════════════╝");
-                Console.WriteLine("  ── Core Analytics ─────────────────");
-                Console.WriteLine("  [1]  System-Wide Statistics");
-                Console.WriteLine("  [2]  Top Performers (Students)");
-                Console.WriteLine("  [3]  Category Popularity");
-                Console.WriteLine("  ── Trend Analysis ──────────────────");
-                Console.WriteLine("  [4]  Enrollment Trends by Month");
-                Console.WriteLine("  [5]  Instructor Rankings");
-                Console.WriteLine("  ── Risk Analysis ───────────────────");
-                Console.WriteLine("  [6]  Students At Risk (System-Wide)");
-                Console.WriteLine("  [7]  Course Completion Rates");
-                Console.WriteLine("  ── Course Details ──────────────────");
-                Console.WriteLine("  [8]  Popular Courses (Top N)");
-                Console.WriteLine("  [9]  Full Course Details");
-                Console.WriteLine("  [10] Search Courses (Wk7 multi-filter)");
-                Console.WriteLine("  ── Enrollment (Wk7) ────────────────");
-                Console.WriteLine("  [11] Mark Enrollment as Completed");
-                Console.WriteLine("  [12] Enrollment Trends");
+                Console.WriteLine("  [1]  List All Users");
+                Console.WriteLine("  [2]  View User Details");
+                Console.WriteLine("  [3]  Deactivate User");
+                Console.WriteLine("  [4]  Reactivate User");
+                Console.WriteLine("  [5]  Reset Password");
                 Console.WriteLine("  [0]  Back");
                 Console.WriteLine("════════════════════════════════════════");
                 Console.Write("  Choice: ");
-                string ch = Console.ReadLine();
-                Console.Clear();
-
-                switch (ch)
-                    {
-                    // ── Core Analytics ──
-                    case "1":
-                        analyticsSvc.DisplaySystemStats();
-                        break;
-
-                    case "2":
-                        Console.Write("  Top N students: "); int.TryParse(Console.ReadLine(), out int tn);
-                        if (tn < 1) tn = 5;
-                        analyticsSvc.DisplayTopPerformers(analyticsSvc.GetTopPerformers(tn));
-                        break;
-
-                    case "3":
-                        analyticsSvc.DisplayCategoryPopularity(analyticsSvc.GetCategoryPopularity());
-                        break;
-
-                    // ── Trend Analysis ──
-                    case "4":
-                        analyticsSvc.DisplayEnrollmentTrends(analyticsSvc.GetEnrollmentTrendsByMonth());
-                        break;
-
-                    case "5":
-                        analyticsSvc.GetInstructorRankings();
-                        break;
-
-                    // ── Risk Analysis ──
-                    case "6":
-                        analyticsSvc.DisplayAtRiskStudents(analyticsSvc.GetStudentsAtRisk());
-                        break;
-
-                    case "7":
-                        analyticsSvc.DisplayCourseCompletionRates(analyticsSvc.GetCourseCompletionRates());
-                        break;
-
-                    // ── Course Details ──
-                    case "8":
-                        Console.Write("  Top N: "); int.TryParse(Console.ReadLine(), out int pn);
-                        if (pn < 1) pn = 5;
-                        courseSvc.DisplayPopularCourses(courseSvc.GetPopularCourses(pn));
-                        break;
-
-                    case "9":
-                        Console.Write("  Course ID: ");
-                        if (int.TryParse(Console.ReadLine(), out int fdId))
-                            courseSvc.GetCourseWithFullDetails(fdId);
-                        break;
-
-                    case "10":
-                        Console.Write("  Keyword   (Enter=any): "); string skw = Console.ReadLine();
-                        Console.Write("  Category  (Enter=any): "); string scat = Console.ReadLine();
-                        Console.Write("  Difficulty(Enter=any): "); string sdif = Console.ReadLine();
-                        var searched = courseSvc.SearchCourses(
-                            string.IsNullOrWhiteSpace(skw) ? null : skw,
-                            string.IsNullOrWhiteSpace(scat) ? null : scat,
-                            string.IsNullOrWhiteSpace(sdif) ? null : sdif);
-                        Console.WriteLine($"\n  {searched.Count} course(s) found:");
-                        DisplayCourseTable(searched);
-                        break;
-
-                    // ── Enrollment (Wk7) ──
-                    case "11":
-                        Console.Write("  Enrollment ID to mark completed: ");
-                        if (int.TryParse(Console.ReadLine(), out int mcId))
-                            enrollSvc7.MarkAsCompleted(mcId);
-                        break;
-
-                    case "12":
-                        var trends = enrollSvc7.GetEnrollmentTrends();
-                        enrollSvc7.DisplayEnrollmentTrends(trends);
-                        break;
-
-                    case "0": back = true; break;
-                    default: Console.WriteLine("  Invalid choice."); break;
-                    }
-                if (!back) Console.ReadKey();
-                }
-            }
-
-        // ════════════════════════════════════════════════════════
-        //  ADMIN SUB-MENUS (unchanged from Assignment 6)
-        // ════════════════════════════════════════════════════════
-        static void AdminManageUsers()
-            {
-            bool back = false;
-            while (!back)
-                {
-                Console.Clear();
-                Console.WriteLine("╔════════════════════════════════════════╗");
-                Console.WriteLine("║          ADMIN — MANAGE USERS          ║");
-                Console.WriteLine("╚════════════════════════════════════════╝");
-                Console.WriteLine("  [1]  View All Users");
-                Console.WriteLine("  [2]  View by Type");
-                Console.WriteLine("  [3]  Find User by ID");
-                Console.WriteLine("  [4]  Find User by Username");
-                Console.WriteLine("  [5]  Create New User");
-                Console.WriteLine("  [6]  Toggle Active Status");
-                Console.WriteLine("  [7]  Reset Password");
-                Console.WriteLine("  [8]  Delete User");
-                Console.WriteLine("  [9]  User Full Details");
-                Console.WriteLine("  [10] All Instructors");
-                Console.WriteLine("  [11] Instructor with Courses");
-                Console.WriteLine("  [12] Instructor with Courses + Students");
-                Console.WriteLine("  [0]  Back");
-                Console.WriteLine("════════════════════════════════════════");
-                Console.Write("  Choice: ");
-                string ch = Console.ReadLine();
-                Console.Clear();
-
+                string ch = Console.ReadLine(); Console.Clear();
                 switch (ch)
                     {
                     case "1": efAdmin.DisplayUserList(efAdmin.GetAllUsers()); break;
                     case "2":
-                        Console.Write("  Type: ");
-                        efAdmin.DisplayUserList(efAdmin.GetUsersByType(Console.ReadLine())); break;
-                    case "3":
-                        Console.Write("  User ID: ");
-                        if (int.TryParse(Console.ReadLine(), out int fuId))
-                            { var u = efAdmin.FindUserById(fuId); if (u != null) efAdmin.DisplayUserList(new List<UserEntity> { u }); }
+                        Console.Write("  User ID: "); int.TryParse(Console.ReadLine(), out int uid);
+                        var u = efAdmin.FindUserById(uid);              // ← was GetUserById
+                        if (u != null) { efAdmin.DisplayUserFullDetails(u); }  // ← was DisplayUserDetails
+                        else Console.WriteLine("  ✗ User not found.");
                         break;
+                    case "3":
+                        Console.Write("  User ID to deactivate: "); int.TryParse(Console.ReadLine(), out int did);
+                        efAdmin.SetUserActiveStatus(did, false); break; // ← was DeactivateUser
                     case "4":
-                        Console.Write("  Username: ");
-                        var found = efAdmin.FindUserByUsername(Console.ReadLine());
-                        if (found != null) efAdmin.DisplayUserList(new List<UserEntity> { found }); break;
+                        Console.Write("  User ID to reactivate: "); int.TryParse(Console.ReadLine(), out int rid);
+                        efAdmin.SetUserActiveStatus(rid, true); break;  // ← was ReactivateUser
                     case "5":
-                        Console.Write("  Username : "); string cuu = Console.ReadLine();
-                        Console.Write("  Email    : "); string cue = Console.ReadLine();
-                        Console.Write("  Password : "); string cup = Console.ReadLine();
-                        Console.Write("  Type     : "); string cut = Console.ReadLine();
-                        efAdmin.CreateUser(cuu, cue, cup, cut); break;
-                    case "6":
-                        Console.Write("  User ID: "); int.TryParse(Console.ReadLine(), out int togId);
-                        Console.Write("  Active (true/false): "); bool.TryParse(Console.ReadLine(), out bool togActive);
-                        efAdmin.SetUserActiveStatus(togId, togActive); break;
-                    case "7":
-                        Console.Write("  User ID: "); int.TryParse(Console.ReadLine(), out int rpId);
-                        Console.Write("  New Password: "); string rpPwd = Console.ReadLine();
-                        efAdmin.ResetPassword(rpId, rpPwd); break;
-                    case "8":
-                        Console.Write("  User ID to delete: ");
-                        if (int.TryParse(Console.ReadLine(), out int delId)) efAdmin.DeleteUser(delId); break;
-                    case "9":
-                        Console.Write("  User ID: ");
-                        if (int.TryParse(Console.ReadLine(), out int fdId))
-                            efAdmin.DisplayUserFullDetails(efAdmin.GetUserWithFullDetails(fdId)); break;
-                    case "10":
-                        efInstructors.DisplayInstructorList(efInstructors.GetAllInstructors()); break;
-                    case "11":
-                        Console.Write("  Instructor ID: ");
-                        if (int.TryParse(Console.ReadLine(), out int iwcId))
-                            efInstructors.DisplayInstructorWithCourses(efInstructors.GetInstructorWithCourses(iwcId)); break;
-                    case "12":
-                        Console.Write("  Instructor ID: ");
-                        if (int.TryParse(Console.ReadLine(), out int iwcsId))
-                            efInstructors.DisplayInstructorWithCoursesAndStudents(efInstructors.GetInstructorWithCoursesAndStudents(iwcsId)); break;
+                        Console.Write("  User ID   : "); int.TryParse(Console.ReadLine(), out int pid);
+                        Console.Write("  New pass  : "); string np = Console.ReadLine();
+                        efAdmin.ResetPassword(pid, np); break;
                     case "0": back = true; break;
                     default: Console.WriteLine("  Invalid choice."); break;
                     }
@@ -853,90 +781,30 @@ namespace SmartLearnLMS
                 }
             }
 
-        static void AdminManageCourses()
+        static void ShowAdminCourseMenu()
             {
             bool back = false;
             while (!back)
                 {
                 Console.Clear();
                 Console.WriteLine("╔════════════════════════════════════════╗");
-                Console.WriteLine("║         ADMIN — MANAGE COURSES         ║");
+                Console.WriteLine("║           MANAGE COURSES               ║");
                 Console.WriteLine("╚════════════════════════════════════════╝");
-                Console.WriteLine("  [1]  View All Courses");
-                Console.WriteLine("  [2]  Search / Filter Courses");
-                Console.WriteLine("  [3]  View Courses by Category");
-                Console.WriteLine("  [4]  Create New Course");
-                Console.WriteLine("  [5]  Update Enrollment Count");
-                Console.WriteLine("  [6]  Reassign Course to Instructor");
-                Console.WriteLine("  [7]  Delete Course");
-                Console.WriteLine("  [8]  Course with All Students");
-                Console.WriteLine("  [9]  Course with Instructor Info");
-                Console.WriteLine("  [10] Top Courses by Enrollment");
-                Console.WriteLine("  [11] Intermediate Courses with Availability");
+                Console.WriteLine("  [1]  List All Courses");
+                Console.WriteLine("  [2]  View Course Details (Full)");
+                Console.WriteLine("  [3]  Delete Course");
                 Console.WriteLine("  [0]  Back");
-                Console.WriteLine("════════════════════════════════════════");
                 Console.Write("  Choice: ");
-                string ch = Console.ReadLine();
-                Console.Clear();
-
+                string ch = Console.ReadLine(); Console.Clear();
                 switch (ch)
                     {
                     case "1": DisplayCourseTable(efCourses.GetAllCourses()); break;
                     case "2":
-                        Console.Write("  Keyword  : "); string skw = Console.ReadLine();
-                        Console.Write("  Category : "); string scat = Console.ReadLine();
-                        DisplayCourseTable(efCourses.SearchCoursesByKeywordAndCategory(skw, scat)); break;
+                        Console.Write("  Course ID: "); int.TryParse(Console.ReadLine(), out int cid);
+                        courseSvc.GetCourseWithFullDetails(cid); break;
                     case "3":
-                        Console.Write("  Category: ");
-                        DisplayCourseTable(efCourses.GetCoursesByCategory(Console.ReadLine())); break;
-                    case "4":
-                        Console.Write("  Title       : "); string nt = Console.ReadLine();
-                        Console.Write("  Description : "); string nd = Console.ReadLine();
-                        Console.Write("  Category    : "); string nc = Console.ReadLine();
-                        Console.Write("  Difficulty  : "); string ndif = Console.ReadLine();
-                        Console.Write("  Max Capacity: "); int.TryParse(Console.ReadLine(), out int ncap);
-                        Console.Write("  Instructor  : "); string nin = Console.ReadLine();
-                        efCourses.CreateCourse(nt, nd, nc, ndif, ncap, nin); break;
-                    case "5":
-                        Console.Write("  Course ID : "); int.TryParse(Console.ReadLine(), out int ucId);
-                        Console.Write("  New Count : "); int.TryParse(Console.ReadLine(), out int ucCnt);
-                        efCourses.UpdateEnrollmentCount(ucId, ucCnt); break;
-                    case "6":
-                        Console.Write("  Course ID         : "); int.TryParse(Console.ReadLine(), out int rcCId);
-                        Console.Write("  New Instructor ID : "); int.TryParse(Console.ReadLine(), out int rcIId);
-                        efAdmin.ReassignCourse(rcCId, rcIId); break;
-                    case "7":
-                        Console.Write("  Course ID to delete: ");
-                        if (int.TryParse(Console.ReadLine(), out int delCId)) efAdmin.DeleteCourse(delCId); break;
-                    case "8":
-                        Console.Write("  Course ID: ");
-                        if (int.TryParse(Console.ReadLine(), out int cwsId))
-                            {
-                            var cws = efCourses.GetCourseWithStudents(cwsId);
-                            if (cws == null) { Console.WriteLine("  ✗ Not found."); break; }
-                            Console.WriteLine($"\n  [{cws.CourseId}] {cws.Title} | {cws.Category}");
-                            Console.WriteLine($"  Enrolled ({cws.Enrollments.Count}):");
-                            foreach (var e in cws.Enrollments)
-                                Console.WriteLine($"    → {e.Student?.Username ?? "N/A",-24} {e.ProgressPercent,3}%  {e.Status}");
-                            }
-                        break;
-                    case "9":
-                        Console.Write("  Course ID: ");
-                        if (int.TryParse(Console.ReadLine(), out int cwiId))
-                            {
-                            var cwi = efCourses.GetCourseWithInstructor(cwiId);
-                            if (cwi == null) { Console.WriteLine("  ✗ Not found."); break; }
-                            Console.WriteLine($"\n  [{cwi.CourseId}] {cwi.Title}");
-                            Console.WriteLine($"  Instructor : {cwi.Instructor?.Username ?? cwi.InstructorName ?? "N/A"}");
-                            Console.WriteLine($"  Enrolled   : {cwi.CurrentEnrollments}/{cwi.MaxCapacity}");
-                            }
-                        break;
-                    case "10":
-                        Console.Write("  Top N: "); int.TryParse(Console.ReadLine(), out int topN);
-                        if (topN < 1) topN = 5;
-                        DisplayCourseTable(efCourses.GetTopCoursesByEnrollment(topN)); break;
-                    case "11":
-                        DisplayCourseTable(efCourses.GetAvailableIntermediateCourses()); break;
+                        Console.Write("  Course ID to delete: "); int.TryParse(Console.ReadLine(), out int dcid);
+                        efAdmin.DeleteCourse(dcid); break;
                     case "0": back = true; break;
                     default: Console.WriteLine("  Invalid choice."); break;
                     }
@@ -944,69 +812,34 @@ namespace SmartLearnLMS
                 }
             }
 
-        static void AdminManageEnrollments()
+        static void ShowAdminEnrollMenu()
             {
             bool back = false;
             while (!back)
                 {
                 Console.Clear();
                 Console.WriteLine("╔════════════════════════════════════════╗");
-                Console.WriteLine("║       ADMIN — MANAGE ENROLLMENTS       ║");
+                Console.WriteLine("║         MANAGE ENROLLMENTS             ║");
                 Console.WriteLine("╚════════════════════════════════════════╝");
                 Console.WriteLine("  [1]  All Enrollments");
-                Console.WriteLine("  [2]  Enroll Student in Course");
-                Console.WriteLine("  [3]  Drop Student from Course");
-                Console.WriteLine("  [4]  Update Enrollment Progress");
-                Console.WriteLine("  [5]  Change Enrollment Status");
-                Console.WriteLine("  [6]  Enrollments by Status");
-                Console.WriteLine("  [7]  Enrollments for a Course");
-                Console.WriteLine("  [8]  Enrollments for a Student");
-                Console.WriteLine("  [9]  At-Risk Enrollments");
-                Console.WriteLine("  [10] Incomplete Active Enrollments");
+                Console.WriteLine("  [2]  Enroll Student (validated, Wk8)");
+                Console.WriteLine("  [3]  Mark as Completed (validated, Wk8)");
+                Console.WriteLine("  [4]  Enrollment Trends");
                 Console.WriteLine("  [0]  Back");
-                Console.WriteLine("════════════════════════════════════════");
                 Console.Write("  Choice: ");
-                string ch = Console.ReadLine();
-                Console.Clear();
-
+                string ch = Console.ReadLine(); Console.Clear();
                 switch (ch)
                     {
                     case "1": efEnrollments.DisplayEnrollmentList(efAdmin.GetAllEnrollments()); break;
                     case "2":
-                        Console.Write("  Student ID: "); int.TryParse(Console.ReadLine(), out int esId);
-                        Console.Write("  Course ID : "); int.TryParse(Console.ReadLine(), out int ecId);
-                        efEnrollments.EnrollStudent(esId, ecId); break;
+                        Console.Write("  Student ID : "); int.TryParse(Console.ReadLine(), out int sid);
+                        Console.Write("  Course  ID : "); int.TryParse(Console.ReadLine(), out int cid);
+                        enrollSvc.EnrollStudent(sid, cid); break;
                     case "3":
-                        Console.Write("  Student ID: "); int.TryParse(Console.ReadLine(), out int dsId);
-                        Console.Write("  Course ID : "); int.TryParse(Console.ReadLine(), out int dcId);
-                        efEnrollments.DropCourse(dsId, dcId); break;
+                        Console.Write("  Enrollment ID: "); int.TryParse(Console.ReadLine(), out int eid);
+                        enrollSvc.MarkAsCompleted(eid); break;
                     case "4":
-                        Console.Write("  Student ID   : "); int.TryParse(Console.ReadLine(), out int ups);
-                        Console.Write("  Course ID    : "); int.TryParse(Console.ReadLine(), out int upc);
-                        Console.Write("  New Progress : "); int.TryParse(Console.ReadLine(), out int upp);
-                        efEnrollments.UpdateEnrollmentProgress(ups, upc, upp); break;
-                    case "5":
-                        Console.Write("  Enrollment ID: "); int.TryParse(Console.ReadLine(), out int csId);
-                        Console.Write("  New Status   : "); string csSt = Console.ReadLine();
-                        efEnrollments.ChangeEnrollmentStatus(csId, csSt); break;
-                    case "6":
-                        Console.Write("  Status (Active/Completed/Dropped): ");
-                        efEnrollments.DisplayEnrollmentList(efAdmin.GetEnrollmentsByStatus(Console.ReadLine())); break;
-                    case "7":
-                        Console.Write("  Course ID: ");
-                        if (int.TryParse(Console.ReadLine(), out int ceId))
-                            efEnrollments.DisplayEnrollmentList(efEnrollments.GetCourseEnrollments(ceId)); break;
-                    case "8":
-                        Console.Write("  Student ID: ");
-                        if (int.TryParse(Console.ReadLine(), out int seId))
-                            efEnrollments.DisplayEnrollmentList(efEnrollments.GetStudentEnrollments(seId)); break;
-                    case "9":
-                        Console.Write("  Progress threshold (default 30): ");
-                        int.TryParse(Console.ReadLine(), out int thr);
-                        if (thr == 0) thr = 30;
-                        efEnrollments.DisplayEnrollmentList(efAdmin.GetAtRiskEnrollments(thr)); break;
-                    case "10":
-                        efEnrollments.DisplayEnrollmentList(efEnrollments.GetIncompleteActiveEnrollments()); break;
+                        enrollSvc.DisplayEnrollmentTrends(enrollSvc.GetEnrollmentTrends()); break;
                     case "0": back = true; break;
                     default: Console.WriteLine("  Invalid choice."); break;
                     }
@@ -1014,73 +847,33 @@ namespace SmartLearnLMS
                 }
             }
 
-        static void AdminAdoNetMenu()
+        static void ShowAdminAnalytics7Menu()
             {
             bool back = false;
             while (!back)
                 {
                 Console.Clear();
                 Console.WriteLine("╔════════════════════════════════════════╗");
-                Console.WriteLine("║        ADMIN — ADO.NET OPERATIONS      ║");
+                Console.WriteLine("║      ASSIGNMENT 7 ANALYTICS MENU       ║");
                 Console.WriteLine("╚════════════════════════════════════════╝");
-                Console.WriteLine("  [1]  Test DB Connection");
-                Console.WriteLine("  [2]  Read All Students");
-                Console.WriteLine("  [3]  Read All Courses");
-                Console.WriteLine("  [4]  Find User by ID");
-                Console.WriteLine("  [5]  Get Enrollments for Student");
-                Console.WriteLine("  [6]  Insert Student");
-                Console.WriteLine("  [7]  Insert Course");
-                Console.WriteLine("  [8]  Insert Enrollment");
-                Console.WriteLine("  [9]  Update Progress");
-                Console.WriteLine("  [10] Update Enrollment Count");
-                Console.WriteLine("  [11] Delete Enrollment");
+                Console.WriteLine("  [1]  System Statistics");
+                Console.WriteLine("  [2]  Category Popularity");
+                Console.WriteLine("  [3]  Top 5 Courses by Enrollment");
+                Console.WriteLine("  [4]  Enrollments by Category");
                 Console.WriteLine("  [0]  Back");
-                Console.WriteLine("════════════════════════════════════════");
                 Console.Write("  Choice: ");
-                string ch = Console.ReadLine();
-                Console.Clear();
-
+                string ch = Console.ReadLine(); Console.Clear();
                 switch (ch)
                     {
-                    case "1": adoService.TestConnection(); break;
-                    case "2": adoService.DisplayStudents(adoService.GetAllStudentsAdo()); break;
-                    case "3": adoService.DisplayCourses(adoService.GetAllCoursesAdo()); break;
+                    case "1": analyticsSvc.DisplaySystemStats(); break;
+                    case "2": analyticsSvc.DisplayCategoryPopularity(analyticsSvc.GetCategoryPopularity()); break;
+                    case "3": DisplayCourseTable(efCourses.GetTopCoursesByEnrollment(5)); break;
                     case "4":
-                        Console.Write("  User ID: ");
-                        if (int.TryParse(Console.ReadLine(), out int fuId))
-                            { var u = adoService.FindUserById(fuId); if (u != null) Console.WriteLine($"  [{u.UserType}] {u.Username} | {u.Email}"); }
+                        var grp = efCourses.GetEnrollmentsByCategory();
+                        Console.WriteLine($"  {"Category",-26}{"Total Enrollments"}");
+                        Console.WriteLine("  " + new string('─', 44));
+                        foreach (var kv in grp) Console.WriteLine($"  {kv.Key,-26}{kv.Value}");
                         break;
-                    case "5":
-                        Console.Write("  Student ID: ");
-                        if (int.TryParse(Console.ReadLine(), out int gsId)) adoService.GetEnrollmentsByStudent(gsId); break;
-                    case "6":
-                        Console.Write("  Username : "); string isu = Console.ReadLine();
-                        Console.Write("  Email    : "); string ise = Console.ReadLine();
-                        Console.Write("  Password : "); string isp = Console.ReadLine();
-                        adoService.InsertStudentAdo(isu, ise, isp); break;
-                    case "7":
-                        Console.Write("  Title       : "); string ict = Console.ReadLine();
-                        Console.Write("  Category    : "); string icc = Console.ReadLine();
-                        Console.Write("  Difficulty  : "); string icd = Console.ReadLine();
-                        Console.Write("  Max Capacity: "); int.TryParse(Console.ReadLine(), out int icap);
-                        Console.Write("  Instructor  : "); string icin = Console.ReadLine();
-                        adoService.InsertCourseAdo(ict, icc, icd, icap, icin); break;
-                    case "8":
-                        Console.Write("  Student ID: "); int.TryParse(Console.ReadLine(), out int ies);
-                        Console.Write("  Course ID : "); int.TryParse(Console.ReadLine(), out int iec);
-                        adoService.InsertEnrollmentAdo(ies, iec); break;
-                    case "9":
-                        Console.Write("  Student ID  : "); int.TryParse(Console.ReadLine(), out int aps);
-                        Console.Write("  Course ID   : "); int.TryParse(Console.ReadLine(), out int apc);
-                        Console.Write("  New Progress: "); int.TryParse(Console.ReadLine(), out int app);
-                        adoService.UpdateProgressAdo(aps, apc, app); break;
-                    case "10":
-                        Console.Write("  Course ID : "); int.TryParse(Console.ReadLine(), out int ucId);
-                        Console.Write("  New Count : "); int.TryParse(Console.ReadLine(), out int ucCnt);
-                        adoService.UpdateCourseEnrollmentCountAdo(ucId, ucCnt); break;
-                    case "11":
-                        Console.Write("  Enrollment ID: ");
-                        if (int.TryParse(Console.ReadLine(), out int deId)) adoService.DeleteEnrollmentAdo(deId); break;
                     case "0": back = true; break;
                     default: Console.WriteLine("  Invalid choice."); break;
                     }
@@ -1088,56 +881,76 @@ namespace SmartLearnLMS
                 }
             }
 
-        static void AdminAdvancedQueries()
+        static void ShowAdoMenu()
             {
             bool back = false;
             while (!back)
                 {
                 Console.Clear();
                 Console.WriteLine("╔════════════════════════════════════════╗");
-                Console.WriteLine("║       ADMIN — ADVANCED QUERIES         ║");
+                Console.WriteLine("║         ADO.NET OPERATIONS             ║");
                 Console.WriteLine("╚════════════════════════════════════════╝");
-                Console.WriteLine("  [1]  Students above progress %");
-                Console.WriteLine("  [2]  Students enrolled last N days");
-                Console.WriteLine("  [3]  Recently registered users");
-                Console.WriteLine("  [4]  Top N students by progress");
-                Console.WriteLine("  [5]  Students by progress + category");
-                Console.WriteLine("  [6]  Courses with 10+ enrollments");
-                Console.WriteLine("  [7]  Instructors by category");
-                Console.WriteLine("  [8]  Busy instructors (N+ courses)");
+                Console.WriteLine("  [1]  View All Students");
+                Console.WriteLine("  [2]  View All Courses");
+                Console.WriteLine("  [3]  View Enrollments for Student");
                 Console.WriteLine("  [0]  Back");
-                Console.WriteLine("════════════════════════════════════════");
                 Console.Write("  Choice: ");
-                string ch = Console.ReadLine();
-                Console.Clear();
+                string ch = Console.ReadLine(); Console.Clear();
+                switch (ch)
+                    {
+                    case "1": adoService.DisplayStudents(adoService.GetAllStudentsAdo()); break;
+                    case "2": adoService.DisplayCourses(adoService.GetAllCoursesAdo()); break;
+                    case "3":
+                        Console.Write("  Student ID: "); int.TryParse(Console.ReadLine(), out int sid);
+                        adoService.GetEnrollmentsByStudent(sid); break;
+                    case "0": back = true; break;
+                    default: Console.WriteLine("  Invalid choice."); break;
+                    }
+                if (!back) Console.ReadKey();
+                }
+            }
 
+        static void ShowAdvancedQueryMenu()
+            {
+            bool back = false;
+            while (!back)
+                {
+                Console.Clear();
+                Console.WriteLine("╔════════════════════════════════════════╗");
+                Console.WriteLine("║         ADVANCED QUERIES               ║");
+                Console.WriteLine("╚════════════════════════════════════════╝");
+                Console.WriteLine("  [1]  Search Courses (keyword+cat+diff)");
+                Console.WriteLine("  [2]  Popular Courses (top N)");
+                Console.WriteLine("  [3]  Student Recommendations");
+                Console.WriteLine("  [4]  Instructor At-Risk Report");
+                Console.WriteLine("  [5]  Students by Progress + Category");
+                Console.WriteLine("  [6]  Courses with Min 10 Enrollments");
+                Console.WriteLine("  [7]  Instructors by Category");
+                Console.WriteLine("  [8]  Busy Instructors (by course count)");
+                Console.WriteLine("  [0]  Back");
+                Console.Write("  Choice: ");
+                string ch = Console.ReadLine(); Console.Clear();
                 switch (ch)
                     {
                     case "1":
-                        Console.Write("  Min progress %: ");
-                        if (int.TryParse(Console.ReadLine(), out int minP))
-                            { var r = efStudents.GetStudentsAboveProgress(minP); foreach (var s in r) efStudents.DisplayStudentEntity(s); }
-                        break;
+                        Console.Write("  Keyword   : "); string kw = Console.ReadLine();
+                        Console.Write("  Category  : "); string cat = Console.ReadLine();
+                        Console.Write("  Difficulty: "); string dif = Console.ReadLine();
+                        var sr = courseSvc.SearchCourses(kw, cat, dif);
+                        DisplayCourseTable(sr); break;
                     case "2":
-                        Console.Write("  Last N days: ");
-                        if (int.TryParse(Console.ReadLine(), out int nd))
-                            { var r = efStudents.GetRecentlyEnrolledStudents(nd); foreach (var s in r) efStudents.DisplayStudentEntity(s); }
-                        break;
+                        Console.Write("  Top N: "); int.TryParse(Console.ReadLine(), out int n);
+                        courseSvc.DisplayPopularCourses(courseSvc.GetPopularCourses(n > 0 ? n : 5)); break;
                     case "3":
-                        Console.Write("  Last N days: ");
-                        if (int.TryParse(Console.ReadLine(), out int rd))
-                            efAdmin.DisplayUserList(efAdmin.GetRecentlyRegisteredUsers(rd)); break;
+                        Console.Write("  Student ID: "); int.TryParse(Console.ReadLine(), out int sid);
+                        courseSvc.DisplayRecommendedCourses(courseSvc.GetRecommendedCourses(sid)); break;
                     case "4":
-                        Console.Write("  Top N: "); int.TryParse(Console.ReadLine(), out int tn);
-                        if (tn < 1) tn = 5;
-                        var topS = efAdmin.GetTopStudentsByProgress(tn);
-                        foreach (var s in topS)
-                            { double avg = s.Enrollments.Any() ? s.Enrollments.Average(e => e.ProgressPercent) : 0; Console.WriteLine($"  {s.Username,-24} Avg: {avg:F1}%"); }
-                        break;
+                        Console.Write("  Instructor ID: "); int.TryParse(Console.ReadLine(), out int iid);
+                        instructorSvc.GetStudentsAtRisk(iid); break;
                     case "5":
-                        Console.Write("  Min progress %: "); int.TryParse(Console.ReadLine(), out int mp);
+                        Console.Write("  Min progress %: "); int.TryParse(Console.ReadLine(), out int mp2);
                         Console.Write("  Category      : "); string mcat = Console.ReadLine();
-                        var mf = efStudents.GetStudentsByProgressAndCategory(mp, mcat);
+                        var mf = efStudents.GetStudentsByProgressAndCategory(mp2, mcat);
                         foreach (var s in mf) efStudents.DisplayStudentEntity(s); break;
                     case "6":
                         DisplayCourseTable(efCourses.GetCoursesWithMinEnrollments(10)); break;
@@ -1190,17 +1003,14 @@ namespace SmartLearnLMS
                 Console.WriteLine("╔════════════════════════════════════════╗");
                 Console.WriteLine("║         ANALYTICS & REPORTS            ║");
                 Console.WriteLine("╚════════════════════════════════════════╝");
-                Console.WriteLine("  [1]  System Statistics (Wk7)");
+                Console.WriteLine("  [1]  System Statistics (Wk8)");
                 Console.WriteLine("  [2]  Category Popularity");
                 Console.WriteLine("  [3]  Top 5 Courses by Enrollment");
                 Console.WriteLine("  [4]  Enrollments by Category");
                 Console.WriteLine("  [5]  System Analytics (Wk6)");
                 Console.WriteLine("  [0]  Back");
-                Console.WriteLine("════════════════════════════════════════");
                 Console.Write("  Choice: ");
-                string ch = Console.ReadLine();
-                Console.Clear();
-
+                string ch = Console.ReadLine(); Console.Clear();
                 switch (ch)
                     {
                     case "1": analyticsSvc.DisplaySystemStats(); break;
@@ -1210,7 +1020,8 @@ namespace SmartLearnLMS
                         var grp = efCourses.GetEnrollmentsByCategory();
                         Console.WriteLine($"  {"Category",-26}{"Total Enrollments"}");
                         Console.WriteLine("  " + new string('─', 44));
-                        foreach (var kv in grp) Console.WriteLine($"  {kv.Key,-26}{kv.Value}"); break;
+                        foreach (var kv in grp) Console.WriteLine($"  {kv.Key,-26}{kv.Value}");
+                        break;
                     case "5": efAdmin.DisplaySystemAnalytics(); break;
                     case "0": back = true; break;
                     default: Console.WriteLine("  Invalid choice."); break;
@@ -1235,7 +1046,7 @@ namespace SmartLearnLMS
             var withDetails = efStudents.GetStudentWithEnrollmentsAndCourses(u.UserId);
             int enrolled = withDetails?.Enrollments?.Count ?? 0;
             double avgProg = withDetails?.Enrollments?.Any() == true
-                              ? withDetails.Enrollments.Average(e => e.ProgressPercent) : 0;
+                               ? withDetails.Enrollments.Average(e => e.ProgressPercent) : 0;
             int completed = withDetails?.Enrollments?.Count(e => e.Status == "Completed") ?? 0;
 
             Console.WriteLine("════════════════════════════════════");
@@ -1269,7 +1080,9 @@ namespace SmartLearnLMS
 //    Install-Package Microsoft.EntityFrameworkCore.Design
 //    Install-Package Microsoft.Data.SqlClient
 //
-//  Migrations (Assignment 7):
-//    Add-Migration AddCourseHierarchyAndRatings
+//  Migrations (Assignment 8):
+//    Add-Migration AddAuditLogsAndIndexes
 //    Update-Database
+//Add-Migration FixAuditLogNullableColumns
+//Update - Database
 // ─────────────────────────────────────────────────────────────────────────────

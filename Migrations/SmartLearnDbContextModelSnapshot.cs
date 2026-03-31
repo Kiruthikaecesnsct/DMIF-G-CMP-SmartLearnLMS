@@ -69,7 +69,13 @@ namespace Week_1.Migrations
 
                     b.HasKey("CourseId");
 
+                    b.HasIndex("Category");
+
+                    b.HasIndex("DifficultyLevel");
+
                     b.HasIndex("InstructorId");
+
+                    b.HasIndex("Title");
 
                     b.ToTable("Courses");
                 });
@@ -175,6 +181,10 @@ namespace Week_1.Migrations
 
                     b.HasIndex("CourseId");
 
+                    b.HasIndex("Status");
+
+                    b.HasIndex("StudentId");
+
                     b.HasIndex("StudentId", "CourseId")
                         .IsUnique();
 
@@ -218,6 +228,50 @@ namespace Week_1.Migrations
                     b.HasIndex("ModuleId");
 
                     b.ToTable("Lessons");
+                });
+
+            modelBuilder.Entity("Week_1.Logging.AuditLog", b =>
+                {
+                    b.Property<int>("AuditLogId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AuditLogId"));
+
+                    b.Property<string>("Action")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Category")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Details")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("nvarchar(45)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Username")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("AuditLogId");
+
+                    b.HasIndex("Action");
+
+                    b.HasIndex("Timestamp");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AuditLogs");
                 });
 
             modelBuilder.Entity("Week_1.UserEntity", b =>

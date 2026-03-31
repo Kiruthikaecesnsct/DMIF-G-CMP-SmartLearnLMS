@@ -2,174 +2,195 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Week_1.Exceptions;
+using Week_1.Logging;
+using Week_1.Validators;
 
 namespace Week_1.Services
     {
     /// <summary>
-    /// Assignment 7 — Part 3 Task 3: CourseService
-    /// Search, popular courses, full details, and course recommendations.
+    /// Assignment 8 — CourseService with exception handling, validation,
+    /// logging, and optimised queries (AsNoTracking, projection).
     /// </summary>
     public class CourseService
         {
-        // ══════════════════════════════════════════════════════
+        private static readonly Logger _log = Logger.Instance;
+        private static readonly AuditService _audit = new();
+        private readonly BusinessRuleValidator _rules = new();
+
+        // ══════════════════════════════════════════════════════════════
         //  SearchCourses
-        // ══════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════════════
 
         /// <summary>
-        /// Search courses by keyword (in title or description),
-        /// optional category, and optional difficulty level.
-        /// Includes instructor details and enrollment count.
-        /// All parameters are nullable — pass null to skip that filter.
+        /// Searches courses by keyword (title/description), optional category,
+        /// and optional difficulty. Uses AsNoTracking for read performance.
         /// </summary>
         public List<CourseEntity> SearchCourses(string keyword, string category, string difficulty)
             {
+            _log.Debug("CourseService",
+                       $"SearchCourses: keyword='{keyword}' cat='{category}' diff='{difficulty}'");
             try
                 {
                 using var ctx = new SmartLearnDbContext();
                 var query = ctx.Courses
+                    .AsNoTracking()
                     .Include(c => c.Instructor)
                     .AsQueryable();
 
-                // Keyword filter: title or description
                 if (!string.IsNullOrWhiteSpace(keyword))
                     query = query.Where(c =>
                         c.Title.Contains(keyword) ||
                         (c.Description != null && c.Description.Contains(keyword)));
 
-                // Optional category filter
                 if (!string.IsNullOrWhiteSpace(category))
                     query = query.Where(c => c.Category == category);
 
-                // Optional difficulty filter
                 if (!string.IsNullOrWhiteSpace(difficulty))
                     query = query.Where(c => c.DifficultyLevel == difficulty);
 
-                return query.OrderBy(c => c.Title).ToList();
+                var results = query.OrderBy(c => c.Title).ToList();
+                _log.Info("CourseService", $"SearchCourses returned {results.Count} result(s).");
+                return results;
                 }
-            catch (Exception ex) { Console.WriteLine($"  ✗ Error: {ex.Message}"); return new List<CourseEntity>(); }
+            catch (Exception ex)
+                {
+                _log.Error("CourseService", $"SearchCourses failed: {ex.Message}", null, ex);
+                Console.WriteLine($"  ✗ Error: {ex.Message}");
+                return new List<CourseEntity>();
+                }
             }
 
-        // ══════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════════════
         //  GetPopularCourses
-        // ══════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════════════
 
-        /// <summary>
-        /// Returns top N courses sorted by enrollment count.
-        /// Includes instructor name, category, enrollment count, and average rating.
-        /// </summary>
+        /// <summary>Returns the top N courses by enrollment count.</summary>
         public List<CourseEntity> GetPopularCourses(int topN)
             {
             try
                 {
                 using var ctx = new SmartLearnDbContext();
                 return ctx.Courses
+                    .AsNoTracking()
                     .Include(c => c.Instructor)
                     .Include(c => c.Ratings)
                     .OrderByDescending(c => c.CurrentEnrollments)
                     .Take(topN)
                     .ToList();
                 }
-            catch (Exception ex) { Console.WriteLine($"  ✗ Error: {ex.Message}"); return new List<CourseEntity>(); }
+            catch (Exception ex)
+                {
+                _log.Error("CourseService", $"GetPopularCourses failed: {ex.Message}", null, ex);
+                return new List<CourseEntity>();
+                }
             }
 
-        // ══════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════════════
         //  GetCourseWithFullDetails
-        // ══════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════════════
 
         /// <summary>
-        /// Load a course with ALL related data:
-        ///  – Instructor
-        ///  – Modules → Lessons
-        ///  – Enrollments → Student
-        ///  – Ratings → Student
-        /// Uses multiple Include and ThenInclude statements.
-        /// Displays the complete course structure.
+        /// Loads a course with all related data: instructor, modules, lessons,
+        /// enrollments with students, and ratings with students.
+        /// Throws <see cref="CourseNotFoundException"/> if not found.
         /// </summary>
         public CourseEntity GetCourseWithFullDetails(int courseId)
             {
+            _log.Info("CourseService", $"GetCourseWithFullDetails: courseId={courseId}");
             try
                 {
                 using var ctx = new SmartLearnDbContext();
-
                 var course = ctx.Courses
-                    // Branch 1: Instructor
+                    .AsNoTracking()
                     .Include(c => c.Instructor)
-                    // Branch 2: Modules → Lessons
-                    .Include(c => c.Modules)
-                        .ThenInclude(m => m.Lessons)
-                    // Branch 3: Enrollments → Student
-                    .Include(c => c.Enrollments)
-                        .ThenInclude(e => e.Student)
-                    // Branch 4: Ratings → Student
-                    .Include(c => c.Ratings)
-                        .ThenInclude(r => r.Student)
+                    .Include(c => c.Modules).ThenInclude(m => m.Lessons)
+                    .Include(c => c.Enrollments).ThenInclude(e => e.Student)
+                    .Include(c => c.Ratings).ThenInclude(r => r.Student)
                     .FirstOrDefault(c => c.CourseId == courseId);
 
-                if (course == null) { Console.WriteLine("  ✗ Course not found."); return null; }
+                if (course == null)
+                    throw new CourseNotFoundException(courseId);
 
                 DisplayFullCourseDetails(course);
                 return course;
                 }
-            catch (Exception ex) { Console.WriteLine($"  ✗ Error: {ex.Message}"); return null; }
+            catch (CourseNotFoundException ex)
+                {
+                _log.Warning("CourseService", ex.Message);
+                Console.WriteLine($"  ✗ {ex.Message}");
+                return null;
+                }
+            catch (Exception ex)
+                {
+                _log.Error("CourseService", $"GetCourseWithFullDetails failed: {ex.Message}", null, ex);
+                Console.WriteLine($"  ✗ Error: {ex.Message}");
+                return null;
+                }
             }
 
-        // ══════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════════════
         //  GetRecommendedCourses
-        // ══════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════════════
 
         /// <summary>
-        /// Recommends courses the student is NOT enrolled in,
-        /// matching categories they have completed or are currently taking.
-        /// Orders by average rating descending.
+        /// Recommends courses the student is not enrolled in, matching
+        /// categories from their current/past enrolments, ordered by avg rating.
         /// </summary>
         public List<CourseEntity> GetRecommendedCourses(int studentId)
             {
+            _log.Info("CourseService", $"GetRecommendedCourses: studentId={studentId}");
             try
                 {
                 using var ctx = new SmartLearnDbContext();
 
-                // Courses the student is currently enrolled in
-                var enrolledCourseIds = ctx.Enrollments
+                var enrolledIds = ctx.Enrollments
+                    .AsNoTracking()
                     .Where(e => e.StudentId == studentId)
                     .Select(e => e.CourseId)
                     .ToHashSet();
 
-                // Categories of those enrolled courses
-                var relevantCategories = ctx.Enrollments
+                var categories = ctx.Enrollments
+                    .AsNoTracking()
                     .Include(e => e.Course)
                     .Where(e => e.StudentId == studentId)
                     .Select(e => e.Course.Category)
                     .Distinct()
                     .ToList();
 
-                if (!relevantCategories.Any())
+                if (!categories.Any())
                     {
-                    // Student has no enrollments — return top-rated courses overall
+                    // No enrollments — return top-rated overall
                     return ctx.Courses
+                        .AsNoTracking()
                         .Include(c => c.Instructor)
                         .Include(c => c.Ratings)
-                        .Where(c => !enrolledCourseIds.Contains(c.CourseId))
+                        .Where(c => !enrolledIds.Contains(c.CourseId))
                         .OrderByDescending(c => c.Ratings.Any()
                             ? c.Ratings.Average(r => r.Rating) : 0)
-                        .Take(10)
-                        .ToList();
+                        .Take(10).ToList();
                     }
 
-                // Courses NOT enrolled, in matching categories, ordered by avg rating
                 return ctx.Courses
+                    .AsNoTracking()
                     .Include(c => c.Instructor)
                     .Include(c => c.Ratings)
-                    .Where(c => !enrolledCourseIds.Contains(c.CourseId)
-                             && relevantCategories.Contains(c.Category))
+                    .Where(c => !enrolledIds.Contains(c.CourseId)
+                             && categories.Contains(c.Category))
                     .OrderByDescending(c => c.Ratings.Any()
                         ? c.Ratings.Average(r => r.Rating) : 0)
                     .ToList();
                 }
-            catch (Exception ex) { Console.WriteLine($"  ✗ Error: {ex.Message}"); return new List<CourseEntity>(); }
+            catch (Exception ex)
+                {
+                _log.Error("CourseService", $"GetRecommendedCourses failed: {ex.Message}", null, ex);
+                return new List<CourseEntity>();
+                }
             }
 
-        // ── DISPLAY HELPERS ──────────────────────────────────
+        // ── Display helpers ────────────────────────────────────────────
 
+        /// <summary>Displays popular courses in a formatted ranked table.</summary>
         public void DisplayPopularCourses(List<CourseEntity> courses)
             {
             if (!courses.Any()) { Console.WriteLine("  No courses found."); return; }
@@ -180,10 +201,13 @@ namespace Week_1.Services
                 {
                 double avg = c.Ratings?.Any() == true ? c.Ratings.Average(r => r.Rating) : 0;
                 string rating = avg > 0 ? $"{avg:F2} ★" : "No ratings";
-                Console.WriteLine($"  {rank++,-6}{c.Title[..Math.Min(c.Title.Length, 32)],-34}{c.Instructor?.Username ?? "N/A",-22}{c.CurrentEnrollments,-10}{rating}");
+                string title = c.Title.Length > 32 ? c.Title[..29] + "..." : c.Title;
+                Console.WriteLine($"  {rank++,-6}{title,-34}{c.Instructor?.Username ?? "N/A",-22}" +
+                                  $"{c.CurrentEnrollments,-10}{rating}");
                 }
             }
 
+        /// <summary>Displays recommended courses in a formatted table.</summary>
         public void DisplayRecommendedCourses(List<CourseEntity> courses)
             {
             if (!courses.Any()) { Console.WriteLine("  No recommendations found."); return; }
@@ -194,22 +218,23 @@ namespace Week_1.Services
                 {
                 double avg = c.Ratings?.Any() == true ? c.Ratings.Average(r => r.Rating) : 0;
                 string rating = avg > 0 ? $"{avg:F2} ★" : "No ratings";
-                Console.WriteLine($"  {c.Title[..Math.Min(c.Title.Length, 32)],-34}{c.Category,-20}{c.DifficultyLevel,-14}{rating}");
+                string title = c.Title.Length > 32 ? c.Title[..29] + "..." : c.Title;
+                Console.WriteLine($"  {title,-34}{c.Category,-20}{c.DifficultyLevel,-14}{rating}");
                 }
             }
 
-        private void DisplayFullCourseDetails(CourseEntity c)
+        private static void DisplayFullCourseDetails(CourseEntity c)
             {
             Console.WriteLine($"\n╔══════════════════════════════════════════════════╗");
-            Console.WriteLine($"║  COURSE DETAILS: {c.Title[..Math.Min(c.Title.Length, 32)],-33}║");
+            string ttl = c.Title.Length > 32 ? c.Title[..29] + "..." : c.Title;
+            Console.WriteLine($"║  COURSE DETAILS: {ttl,-33}║");
             Console.WriteLine($"╚══════════════════════════════════════════════════╝");
-            Console.WriteLine($"  ID          : {c.CourseId}");
-            Console.WriteLine($"  Category    : {c.Category}  |  Difficulty: {c.DifficultyLevel}");
-            Console.WriteLine($"  Instructor  : {c.Instructor?.Username ?? c.InstructorName ?? "N/A"}");
-            Console.WriteLine($"  Enrolled    : {c.CurrentEnrollments}/{c.MaxCapacity}");
-            Console.WriteLine($"  Description : {c.Description ?? "N/A"}");
+            Console.WriteLine($"  ID         : {c.CourseId}");
+            Console.WriteLine($"  Category   : {c.Category}  |  Difficulty: {c.DifficultyLevel}");
+            Console.WriteLine($"  Instructor : {c.Instructor?.Username ?? c.InstructorName ?? "N/A"}");
+            Console.WriteLine($"  Enrolled   : {c.CurrentEnrollments}/{c.MaxCapacity}");
+            Console.WriteLine($"  Description: {c.Description ?? "N/A"}");
 
-            // Modules & Lessons
             Console.WriteLine($"\n  Modules ({c.Modules?.Count ?? 0}):");
             if (c.Modules?.Any() == true)
                 foreach (var m in c.Modules.OrderBy(m => m.OrderIndex))
@@ -222,18 +247,21 @@ namespace Week_1.Services
             else
                 Console.WriteLine("    No modules yet.");
 
-            // Enrollments
             Console.WriteLine($"\n  Enrolled Students ({c.Enrollments?.Count ?? 0}):");
             if (c.Enrollments?.Any() == true)
                 foreach (var e in c.Enrollments.OrderByDescending(e => e.ProgressPercent).Take(5))
                     Console.WriteLine($"    • {e.Student?.Username ?? "N/A",-22} {e.ProgressPercent,3}%  ({e.Status})");
 
-            // Ratings
             double avgRating = c.Ratings?.Any() == true ? c.Ratings.Average(r => r.Rating) : 0;
-            Console.WriteLine($"\n  Ratings ({c.Ratings?.Count ?? 0}) — Avg: {(avgRating > 0 ? $"{avgRating:F2} ★" : "None")}");
+            Console.WriteLine($"\n  Ratings ({c.Ratings?.Count ?? 0}) — Avg: " +
+                              $"{(avgRating > 0 ? $"{avgRating:F2} ★" : "None")}");
             if (c.Ratings?.Any() == true)
                 foreach (var r in c.Ratings.OrderByDescending(r => r.RatingDate).Take(3))
-                    Console.WriteLine($"    {r.Rating} ★  {r.Student?.Username ?? "N/A",-18}  \"{r.ReviewText?.Substring(0, Math.Min(r.ReviewText.Length, 40))}\"");
+                    {
+                    string review = r.ReviewText?.Length > 40
+                        ? r.ReviewText[..37] + "..." : (r.ReviewText ?? "");
+                    Console.WriteLine($"    {r.Rating} ★  {r.Student?.Username ?? "N/A",-18}  \"{review}\"");
+                    }
             }
         }
     }

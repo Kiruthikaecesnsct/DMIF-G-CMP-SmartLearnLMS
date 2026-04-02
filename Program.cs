@@ -414,42 +414,124 @@ Console.WriteLine($"\n{alice.GenerateReport()}");
 
 //================== SOLID Principles= One class, one job. Show the before/after using SmartLearn.========================//
 
-//S — Single Responsibility Principle//
+//S – Single Responsibility Principle (SRP)
 
-//BEFORE — violates SRP
+// ❌ BAD - One class doing 4 jobs
+//public class Student
+//    {
+//    public void EnrollInCourse() { /* enrollment logic */ }
+//    public void SaveToDatabase() { /* file/JSON logic */ }     // ← Database job!
+//    public void SendWelcomeEmail() { /* email logic */ }       // ← Email job!
+//    public void GenerateProgressReport() { /* reporting job */ } // ← Report job!
+//    }
 
+//// ✅ GOOD - Each class has ONE reason to change
+//public class Student
+//    {
+//    public void EnrollInCourse(Course course) { /* only student behavior */ }
+//    }
+
+//public class StudentRepository          // Only database
+//    {
+//    public void Save(Student student) { /* JSON or later SQL */ }
+//    }
+
+//public class EmailService               // Only emails
+//    {
+//    public void SendWelcomeEmail(Student student) { /* email code */ }
+//    }
+
+//public class ReportService              // Only reports
+//    {
+//    public string GenerateProgressReport(Student student) { /* report code */ }
+//    }
+
+//========================================================================================================
+//===================//
+
+
+//O – Open/Closed Principle (OCP)
+
+// ❌ BAD - Every new payment method requires changing this class
+//public class PaymentProcessor
+//    {
+//    public void ProcessPayment(string paymentType, decimal amount)
+//        {
+//        if (paymentType == "CreditCard") { /* card logic */ }
+//        else if (paymentType == "PayPal") { /* paypal logic */ }
+//        else if (paymentType == "UPI") { /* new UPI logic - have to edit this file! */ }
+//        }
+//    }
+
+//// ✅ GOOD - Open for extension, closed for modification
+//public interface IPaymentMethod
+//    {
+//    void Process(decimal amount);
+//    }
+
+//public class CreditCardPayment : IPaymentMethod
+//    {
+//    public void Process(decimal amount) { /* card logic */ }
+//    }
+
+//public class PayPalPayment : IPaymentMethod
+//    {
+//    public void Process(decimal amount) { /* paypal logic */ }
+//    }
+
+//public class UPIPayment : IPaymentMethod     // ← Just add new class!
+//    {
+//    public void Process(decimal amount) { /* UPI logic - NO change to old code */ }
+//    }
+
+//public class PaymentProcessor
+//    {
+//    public void ProcessPayment(IPaymentMethod method, decimal amount)
+//        {
+//        method.Process(amount);   // Works with ANY new payment method
+//        }
+//    }
+//========================================================================================================
+//===================//
+
+//L – Liskov Substitution Principle (LSP)
+
+// Base class
+//public class User
+//    {
+//    public virtual void DisplayDashboard()
+//        {
+//        Console.WriteLine("Generic User Dashboard");
+//        }
+//    }
+
+
+//// ❌ BAD - Breaks LSP (Student cannot replace User without surprise)
 //public class Student : User
 //    {
-//    public void EnrollInCourse(int courseId) { }  // ✅ Student concern
-
-//    public void SaveToDatabase() { }              // ❌ Database concern
-//    public void SendWelcomeEmail() { }            // ❌ Email concern
-//    public void GenerateProgressReport() { }      // ❌ Reporting concern
+//    public override void DisplayDashboard()
+//        {
+//        throw new NotSupportedException("Students use different dashboard!"); // ← Surprise!
+//        }
 //    }
 
-
-//AFTER — follows SRP
-
-//// Student handles student behaviour only
-//public class Student : User, ISearchable, INotifiable, IReportable
+//// ✅ GOOD - Child can safely replace parent
+//public class Student : User
 //    {
-//    public void EnrollInCourse(int courseId) { }
+//    public override void DisplayDashboard()
+//        {
+//        Console.WriteLine($"📊 Student Dashboard - Progress: {ProgressPercentage}%");
+//        }
 //    }
 
-//// Separate class for file/database work
-//public class StudentRepository
+//// Usage - This must work without crashing!
+//public void ShowDashboard(User user)
 //    {
-//    public void SaveToFile(List<Student> students) { }
-//    public List<Student> LoadFromFile() { }
+//    user.DisplayDashboard();   // Works for Admin, Student, Instructor
 //    }
 
-//// Separate service for notifications
-//public class NotificationService
-//    {
-//    public void NotifyEnrollment(INotifiable user, string courseName) { }
-//    }
-
-//===========================================================================================================================//
+//========================================================================================================
+//===================//
 
 //I — Interface Segregation Principle==Do not force classes to implement methods they will never use.//
 

@@ -199,6 +199,9 @@ string connectionString = @"Server=localhost\SQLEXPRESS;
 //SESSION-6 - ADO.NET & Entity Framework Core - Connecting C# to SQL Server//
 
 //Add package ----dotnet add package System.Data.SqlClient
+//Microsoft.EntityFrameworkCore.SqlServer
+//Microsoft.EntityFrameworkCore.Tools
+//Microsoft.EntityFrameworkCore.Design
 
 //check on AdNetDemo.cs for code
 
@@ -210,12 +213,17 @@ string connectionString = @"Server=localhost\SQLEXPRESS;
 
 //========================================================================//
 
-
+//var student = db.Students
+//    .Include(s => s.Enrollments)
+//    .ThenInclude(e => e.Course)
+//    .FirstOrDefault(s => s.StudentId == id);
 
 // ── Seed data is now in the database via migrations ──────────────────────────
 var studentService = new StudentService();
 var courseService = new CourseService();
 var enrollmentService = new EnrollmentService();
+
+
 
 // Register a new student — goes straight to the database
 // Wrap in try/catch in case testuser already exists from a previous run

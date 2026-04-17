@@ -53,3 +53,120 @@ namespace Week_1.Data
             }
         }
     }
+
+
+
+//using System;
+//using System.Collections.Generic;
+//using System.Data;
+//using Microsoft.Data.SqlClient;   // Modern ADO.NET provider for .NET Core / .NET 5+
+//using Week_1;                     // Your model classes (Student, Instructor, Course, Enrollment)
+
+//namespace Week_1.Data
+//    {
+//    /// <summary>
+//    /// ADO.NET Core version of the data access layer.
+//    /// Replaces the EF Core DbContext.
+//    /// No DbSets, no migrations, no OnModelCreating.
+//    /// All operations use raw SQL via SqlConnection/SqlCommand.
+//    /// Tables must be created manually (or via a separate SQL script).
+//    /// </summary>
+//    public class SmartLearnDbContext   // Kept the same class name for minimal code changes in your project
+//        {
+//        // Same connection string you were using in EF Core
+//        private readonly string _connectionString =
+//            @"Server=localhost\SQLEXPRESS;
+//              Database=SmartLearnDB;
+//              Trusted_Connection=True;
+//              TrustServerCertificate=True;";
+
+//        /// <summary>
+//        /// Returns an open SqlConnection. Caller is responsible for disposing it.
+//        /// </summary>
+//        public SqlConnection GetConnection()
+//            {
+//            var connection = new SqlConnection(_connectionString);
+//            connection.Open();
+//            return connection;
+//            }
+
+//        /// <summary>
+//        /// Seeds the default Instructor and Courses (same data you had in EF Core HasData).
+//        /// Uses IF NOT EXISTS so it is safe to call multiple times.
+//        /// </summary>
+//        public void SeedData()
+//            {
+//            using var connection = new SqlConnection(_connectionString);
+//            connection.Open();
+
+//            // Seed Instructor (must exist before courses because of FK)
+//            const string instructorSeed = @"
+//                IF NOT EXISTS (SELECT 1 FROM Instructors WHERE InstructorId = 1)
+//                BEGIN
+//                    INSERT INTO Instructors 
+//                        (InstructorId, Username, Password, Email, DateRegistered, IsActive)
+//                    VALUES 
+//                        (1, 'admin_instructor', 'pass123', 'instructor@smartlearn.com', '2024-01-01', 1);
+//                END";
+
+//            using (var cmd = new SqlCommand(instructorSeed, connection))
+//                {
+//                cmd.ExecuteNonQuery();
+//                }
+
+//            // Seed Courses 
+//            const string courseSeed = @"
+//                IF NOT EXISTS (SELECT 1 FROM Courses WHERE CourseId = 1)
+//                BEGIN
+//                    INSERT INTO Courses 
+//                        (CourseId, Title, Description, Category, Difficulty, CurrentEnrollments, MaxStudents, InstructorId)
+//                    VALUES 
+//                        (1, 'C# Basics', 'Introduction to C# programming', 'Programming', 'Beginner', 0, 200, 1),
+//                        (2, 'Advanced LINQ', 'Deep dive into LINQ queries', 'Programming', 'Advanced', 0, 100, 1),
+//                        (3, 'Web Design 101', 'HTML and CSS fundamentals', 'Design', 'Beginner', 0, 150, 1),
+//                        (4, 'UI/UX Principles', 'User interface design principles', 'Design', 'Intermediate', 0, 80, 1),
+//                        (5, 'Data Science Intro', 'Introduction to data science', 'Data', 'Intermediate', 0, 120, 1),
+//                        (6, 'Machine Learning', 'ML algorithms and applications', 'Data', 'Advanced', 0, 60, 1);
+//                END";
+
+//            using (var cmd = new SqlCommand(courseSeed, connection))
+//                {
+//                cmd.ExecuteNonQuery();
+//                }
+//            }
+
+//        // ===================================================================
+//        // Example helper methods (you can add more as needed)
+//        // ===================================================================
+
+//        public List<Course> GetAllCourses()
+//            {
+//            var courses = new List<Course>();
+//            using var connection = new SqlConnection(_connectionString);
+//            connection.Open();
+
+//            const string query = "SELECT * FROM Courses ORDER BY CourseId";
+//            using var cmd = new SqlCommand(query, connection);
+//            using var reader = cmd.ExecuteReader();
+
+//            while (reader.Read())
+//                {
+//                courses.Add(new Course
+//                    {
+//                    CourseId = reader.GetInt32("CourseId"),
+//                    Title = reader.GetString("Title"),
+//                    Description = reader.GetString("Description"),
+//                    Category = reader.GetString("Category"),
+//                    Difficulty = reader.GetString("Difficulty"),
+//                    CurrentEnrollments = reader.GetInt32("CurrentEnrollments"),
+//                    MaxStudents = reader.GetInt32("MaxStudents"),
+//                    InstructorId = reader.GetInt32("InstructorId")
+//                    });
+//                }
+//            return courses;
+//            }
+
+//        // Add similar methods for Student, Instructor, Enrollment, etc.
+//        // Example: AddStudent, EnrollStudent, UpdateEnrollmentCount, etc.
+//        }
+//    }
